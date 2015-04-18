@@ -7,13 +7,30 @@ RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noa
  && yum install -y make patch libyaml-devel libffi-devel glibc-headers autoconf gcc-c++ glibc-devel patch readline-devel zlib-devel openssl-devel bzip2 automake libtool bison \
  && yum install -y postgresql94 postgresql94-devel postgresql94-libs postgresql94-server \
  && yum install -y wget monit mlocate vim which tar \
+ && yum install -y curl-devel pcre-devel \
  && yum clean all
-#RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/e/epel-release-7-5.noarch.rpm
-# install necessary utilities
-#RUN rpm -iUvh http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm
 
-#RUN yum update -y; yum clean all
+### NODE #######################################################
+COPY packages/node-v0.12.2.tar.gz /tmp
+WORKDIR /tmp/node-v0.12.2
+RUN ./configure && make && make install
 
-#RUN yum install -y make patch libyaml-devel libffi-devel glibc-headers autoconf gcc-c++ glibc-devel patch readline-devel zlib-devel openssl-devel bzip2 automake libtool bison; yum clean all
-#RUN yum install -y postgresql94 postgresql94-devel postgresql94-libs postgresql94-server; yum clean all
-#RUN yum install -y wget monit mlocate vim which tar; yum clean all
+### REDIS #######################################################
+COPY packages/redis-3.0.0.tar.gz /tmp
+WORKDIR /tmp/redis-3.0.0
+RUN make && cp /tmp/redis-2.8.19/src/redis-* /usr/local/bin/
+
+# RUBY ###########
+COPY ruby-2.2.2.tar.bz2 /tmp
+WORKDIR /tmp/ruby-2.2.2
+RUN ./configure --disable-install-rdoc --disable-install-ri \
+ && make && make install \
+ && gem install --no-rdoc --no-ri rails -v '4.2.1' \
+ && gem install --no-rdoc --no-ri pg -v '0.18.1' -- --with-pg_config=/usr/pgsql-9.4/bin/pg_config \
+ && gem install therubyracer --no-ri --no-rdoc \
+ && gem install --no-rdoc --no-ri passenger -v '5.0.6' \
+ && passenger-install-nginx-module --auto
+
+WORKDIR /tmp
+RUN rails new rails_app --database=postgresql
+WORKDIR /
