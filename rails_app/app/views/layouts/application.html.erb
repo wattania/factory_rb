@@ -1,9 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>RailsApp</title>
-  <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track' => true %>
-  <%= javascript_include_tag 'application', 'data-turbolinks-track' => true %>
+  <title>FACTORY RB</title>
+  <link rel="stylesheet" type="text/css" href="http://cdn.sencha.com/ext/gpl/5.1.0/build/packages/ext-theme-classic/build/resources/ext-theme-classic-all.css">
+
+<% if Rails.env == 'production' %>
+  <!-- <link rel="stylesheet" type="text/css" href="http://cdn.sencha.com/ext/gpl/5.1.0/build/packages/ext-theme-classic/build/resources/ext-theme-classic-all.css"> -->
+  
+<% else %>
+  <!-- <%= stylesheet_link_tag    "/ext-5.1.0/build/packages/ext-theme-classic/build/resources/ext-theme-classic-all"  %> -->
+<% end %>
+  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
   <%= csrf_meta_tags %>
 </head>
 <body>

@@ -1,7 +1,8 @@
 Ext.define 'RestClient',
     extend: 'Ext.Base'
     constructor: (config)-> 
-        @url = GET_PREFIX_URI config.url
+        #@url = GET_PREFIX_URI config.url
+        @url = config.url
         @callParent arguments
 
         @async = config.async

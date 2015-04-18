@@ -51,12 +51,6 @@ Ext.define 'PageManager',
       ,
         flex: 1
         border: false
-      ,
-        xtype: 'image'
-        src: ProgHelper.img_url "#{LOCATION.toLowerCase()}-flag.png"
-        width: 24
-        height: 24
-        margin: '0 10 0 0'
       , 
         xtype: 'button'
         text: "<b>#{USER_FIRST_NAME} #{USER_LAST_NAME}</b>"

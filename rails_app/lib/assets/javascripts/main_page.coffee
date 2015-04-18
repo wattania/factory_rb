@@ -99,20 +99,7 @@ Ext.define 'MainPage',
   constructor: ->
     @rest_client = Ext.create 'RestClient', { url: "program_manager" }
     @callParent arguments
-  update_status: (callback)->
-    me = @
-    me.rest_client.index 'dashboard', {},
-      (res)->
-        if res.success
-          if Ext.isArray res.rows
-            for data in res.rows
-              for c in me.query "StatusMenu[name=#{data.name}]"
-                c.set_value data unless Ext.isEmpty c
-        
-        callback()
-    ,
-      ()-> callback()
-    return
+ 
   initComponent: ->
     me = @
     @view_panel = Ext.create 'Ext.panel.Panel',
@@ -125,9 +112,7 @@ Ext.define 'MainPage',
         title: "Status List"
         name: 'status_list'
         listeners:
-          render: ()->
-            me.setLoading true
-            me.update_status -> me.setLoading false
+          render: ()-> 
           
 
         region: 'center'
@@ -216,14 +201,14 @@ Ext.define 'MainPage',
           
 
         items: [
-          text: "<b>Check In #{LOCATION}</b>"
+          text: "<b>Check In #{}</b>"
           program: 'check_in'
           icon: ProgHelper.img_url "shippable.png"
           handler: (btn)->
             btn.setDisabled true
             me.load_form btn.program, btn.text, ()-> btn.setDisabled false
         ,
-          text: "<b>Receive From #{OTHER_LOCATION}</b>"
+          text: "<b>Receive From #{}</b>"
           program: 'receive' 
           icon: ProgHelper.img_url "box_add.png"
           width: 120
