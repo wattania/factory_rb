@@ -1,0 +1,5 @@
+.git
+docker
+rails_app/public
+rails_app/tmp
+rails_app/log
