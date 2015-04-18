@@ -1,4 +1,4 @@
-FROM wattania/factory_rb:base
+FROM docker.io/wattania/factory_rb:base
 MAINTAINER Wattana Inthaphong <wattaint@gmail.com>
 
 ## REDIS ######
