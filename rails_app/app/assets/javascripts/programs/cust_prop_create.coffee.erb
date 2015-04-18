@@ -1,0 +1,118 @@
+Ext.define 'CustPropCreate',
+  extend: 'Ext.form.Panel'
+  border: false
+  layout: type: 'vbox', align: 'stretch'
+  initComponent: ->
+    me = @
+    form = FormHelper.layout
+      row: 2
+      col: 5
+      items: [
+        type: 'text'
+        captions: ['Document No.']
+        pos: [1, 1]
+        name: 'quotation_no'
+      ,
+        type: 'text'
+        captions: ['Description']
+        pos: [1, 2]
+        col_span: 2
+        name: 'customer'
+      ,
+        type: 'text'
+        captions: ['Request By']
+        pos: [1, 4]
+      ,
+        type: 'text'
+        captions: ['Department']
+        pos: [1, 5]
+      ]
+
+    @grid = Ext.create 'Ext.grid.Panel',
+      plugins:
+        ptype: 'cellediting'
+        clicksToEdit: 1
+      store: Ext.create 'Ext.data.Store',
+        fields: ['a']
+        data: [ 1, 2, 3, 4, 5
+        ]
+      columns: [
+        xtype: 'rownumberer'
+        width: 45
+      ,
+        text: 'Tool Receive'
+        flex: 1
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Invoice No.'
+        flex: 1
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Receive QTY'
+        flex: 1
+        editor:
+          xtype: 'x_number' 
+      ]
+    
+    form_center = FormHelper.layout
+      row: 7  
+      col: 5
+      items: [
+        type: 'number'
+        pos: [1, 1]
+        captions: ['Request QTY']
+      ,
+        type: 'text'
+        pos: [2, 1]
+        captions: ['Unit']
+      ,
+        type: 'date'
+        pos: [3, 1]
+        captions: ['CMD Issue Date']
+      ,
+        type: 'date'
+        pos: [4, 1]
+        captions: ['Require Date']
+      ,
+        type: 'text'
+        pos: [5, 1]
+        captions: ['Status']
+      ,
+        type: 'text'
+        pos: [6, 1]
+        captions: ['Doc.Approved']
+      ,
+        xtype: 'panel'
+        captions: ['']
+        panel: { padding: '20 20 0 0' }
+        pos: [1, 2]
+        col_span: 2
+        row_span: 5
+        layout: 'fit'
+        items: @grid
+      ,
+        type: 'number'
+        pos: [6, 3]
+        captions: ['Balance QTY']
+        readOnly: true
+      ]
+ 
+
+    @items = [ 
+      form 
+    ,
+      form_center
+    ,
+      FormHelper.layout
+        row: 2
+        col: 5
+        items: [
+          type: 'text'
+          col_span: 2
+          captions: ['Remark']
+          pos: [1, 1]
+        ]
+    ]
+    @callParent arguments

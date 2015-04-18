@@ -135,54 +135,27 @@ Ext.define 'MainPage',
           
 
         items: [
-          text: "<b>Check In #{}</b>"
-          program: 'check_in'
-          icon: ProgHelper.img_url "shippable.png"
+          text: "<b>Quotation</b>"
+          program: 'quotation'
+          icon: ProgHelper.img_url "Wikibooks-logo.png"
           handler: (btn)->
             btn.setDisabled true
-            me.load_form btn.program, btn.text, ()-> btn.setDisabled false
+            me.load_page btn.program, btn.text, ()-> btn.setDisabled false
         ,
-          text: "<b>Receive From #{}</b>"
-          program: 'receive' 
-          icon: ProgHelper.img_url "box_add.png"
+          text: "<b>Customer Prop.</b>"
+          program: 'cust_prop' 
+          icon: ProgHelper.img_url "icon-become-customer-home-magenta.png"
           width: 120
           handler: (btn)->
             btn.setDisabled true
             me.load_page btn.program, btn.text, ()-> btn.setDisabled false
         ,
-          text: '<b>Enquiry</b>'  
-          program: 'enquiry'
-          icon: ProgHelper.img_url "kwikdisk.png"
+          text: '<b>Die Mold</b>'  
+          program: 'die_mold'
+          icon: ProgHelper.img_url "RTEmagicC_SW_ICON_35x35_01.png"
           handler: (btn)->
             btn.setDisabled true
             me.load_page btn.program, btn.text, ()-> btn.setDisabled false
-        ,
-          xtype: 'panel'
-          width: 1
-        ,
-          text: '<b>Customer Credit</b>' 
-          program: 'customer_credit'
-          icon: ProgHelper.img_url "1178579.24182cb8e41b5545d2a4d77cf79add1e.gif"
-          width: 130
-          handler: (btn)->
-            btn.setDisabled true
-            me.load_page btn.program, btn.text, ()-> btn.setDisabled false
-        #,
-        #  text: '<b>Customer Info</b>'  
-        #  width: 130 
-        #  program: 'customer_info'
-        #  icon: ProgHelper.img_url "user_card.png"
-        #  handler: (btn)->
-        #    btn.setDisabled true
-        #    me.load_page btn.program, btn.text, ()-> btn.setDisabled false
-        #,
-        #  text: 'TEST'
-        #  width: 100
-        #  program: 'test_framework'
-        #  icon: ProgHelper.img_url "user_card.png"
-        #  handler: (btn)->
-        #    btn.setDisabled true
-        #    me.load_page btn.program, {}, ()-> btn.setDisabled false   
         ,
           xtype: 'panel'
           flex: 1

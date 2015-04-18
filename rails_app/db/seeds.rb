@@ -18,7 +18,7 @@ if User.select("1").where(user_name: 'admin').first.blank?
   admin.is_admin    = true
   admin.password    = 'admin*1234'
   admin.email       = 'wattaint@gmail.com'
-
+  admin.department  = 'backend'
   admin.save!
 end
 ########################################################################################################################

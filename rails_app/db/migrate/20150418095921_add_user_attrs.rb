@@ -5,6 +5,7 @@ class AddUserAttrs < ActiveRecord::Migration
     add_column :users, :first_name,    :string,  null: false
     add_column :users, :last_name,     :string
     add_column :users, :is_admin,      :boolean, default: false
+    add_column :users, :department,    :string,  null: false
     add_column :users, :timezone,      :string
     
     add_column :users, :lock_version,  :integer, default: 0

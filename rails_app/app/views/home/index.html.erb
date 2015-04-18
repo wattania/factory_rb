@@ -10,12 +10,13 @@
   var TOOLBAR_BUTTON_HEIGHT = 30;
   var FORM_LINE_HEIGHT = 50;
   var FORM_LINE_SPACE = 10;
-  var IS_ADMIN = <%= @is_admin %>; 
+  var IS_ADMIN        = <%= @is_admin %>; 
   var LOGOUT_URL      = "<%= destroy_user_session_path %>";
   var USER_FIRST_NAME = "<%= @firstname %>";
-  var USER_FIRSTNAME = "<%= @firstname %>";
+  var USER_NAME       = "<%= @username %>";
+  var USER_FIRSTNAME  = "<%= @firstname %>";
   var USER_LAST_NAME  = "<%= @lastname %>";
-  var USER_LASTNAME  = "<%= @lastname %>";
+  var USER_LASTNAME   = "<%= @lastname %>";
   var ENVERONMENT     = "<%= Rails.env %>";
    
 </script>

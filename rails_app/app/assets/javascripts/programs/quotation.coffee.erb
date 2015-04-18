@@ -1,0 +1,160 @@
+//= require programs/quotation_search
+//= require programs/quotation_create
+
+Ext.define 'QuotationView',
+  extend: 'Ext.panel.Panel'
+  border: false
+  layout: 'card'#type: 'vbox', align: 'stretch'
+  filter_data: {}
+  listeners:
+    render: (me)->
+      btn_serch = me.down 'button[name=search]'
+      btn_create = me.down 'button[name=create]'
+
+      btn_create.on 'click', (btn)->
+        me.setLoading true
+        Ext.defer ()->
+          form = Ext.create 'QuotationCreate',
+            flex: 1
+
+          panel = Ext.create 'Ext.panel.Panel',
+            listeners:
+              render: ()->
+                btn_back = panel.down 'button[name=back]'
+
+                btn_back.on 'click', ()->
+                  me.setActiveItem 0
+                  me.remove me.items.getAt 1
+
+            dockedItems: [
+              xtype: 'toolbar'
+              dock: 'top'
+              items: [
+                xtype: 'button'
+                text: text_fa_icon 'save', 'Save'
+              ,
+                xtype: 'button'
+                text: text_fa_icon 'trash', 'Delete'
+                hidden: true
+              ,
+                xtype: 'button'
+                text: text_fa_icon 'arrow-left', 'Back'
+                name: 'back'
+              ]
+            ]
+            layout: type: 'vbox', align: 'stretch'
+            autoScroll: true
+            items: [
+              form
+            ]
+          me.add panel
+          me.getLayout().setActiveItem panel
+          me.setLoading false
+        , 100
+
+
+  initComponent: ->
+
+    @filter = Ext.create 'QuotationSearch'
+
+    store = Ext.create 'Ext.data.Store',
+      fields: ['a', 'b']
+
+
+    grid = Ext.create 'Ext.grid.Panel',
+      flex: 1
+      store: store 
+      dockedItems: [
+        xtype: 'pagingtoolbar'
+        store: store
+        dock: 'bottom'
+        displayInfo: true
+      ,
+        xtype: 'toolbar'
+        dock: 'top'
+        items: [
+          xtype: 'button'
+          text: text_fa_icon 'file', 'Create'
+          name: 'create'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'edit', 'Edit'
+          disabled: true
+        ]
+      ]
+      columns: [
+        xtype: 'rownumberer'
+        width: 45
+      ,
+        text: 'Quotation No.'
+        dataIndex: 'quotation_no'
+      ,
+        text: 'Customer'
+      ,
+        text: 'Create Person'
+      ,
+        text: 'Issue Date'
+      ,
+        text: 'Freight Term'
+      ,
+        text: 'Exch.Rate'
+      ,
+        text: 'Item Code'
+      ,
+        text: 'Model'
+      ,
+        text: 'Sub Code'
+      ,
+        text: 'Customer code'
+      ,
+        text: 'Part Name'
+      ,
+        text: 'Package Price'
+      ,
+        text: 'Total Price'
+      ,
+        text: 'Unit Price'
+      ,
+        text: 'PO Reference'
+      ,
+        text: 'Remark'
+      ,
+        text: 'App.File'
+      ,
+        text: 'Calc.File'
+      ]
+
+    @items = [ 
+      border: false
+      layout: type: 'vbox', align: 'stretch'
+      items: [
+        xtype: 'panel'
+        border: false
+        dockedItems: [
+          xtype: 'toolbar'
+          docked: 'top'
+          items: [
+            xtype: 'button'
+            text: text_fa_icon 'search', 'Search'
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'eraser', 'Clear', 'fa-flip-horizontal'
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'file-excel-o', 'Export'
+          ]
+        ]
+        items: @filter 
+      ,
+        grid 
+      ]
+    ]
+
+    @callParent arguments
+
+Ext.define 'Program.quotation',
+  extend: 'MainView'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_title: -> 'Quotation'
+  get_view: (init, fn)->
+    fn Ext.create 'QuotationView'

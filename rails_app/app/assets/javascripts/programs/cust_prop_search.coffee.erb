@@ -1,0 +1,75 @@
+Ext.define 'CustPropSearch',
+  extend: 'Ext.panel.Panel'
+  border: false
+  height: FormHelper.layout(row: 3).height
+ 
+  initComponent: ->
+
+    form = FormHelper.layout
+      row: 3
+      col: 5
+      items: [
+        type: 'text'
+        captions: ['Document No.']
+        pos: [1, 1]
+        name: 'quotation_no'
+      ,
+        type: 'text'
+        captions: ['Description']
+        pos: [1, 2]
+        name: 'customer'
+      ,
+        type: 'text'
+        captions: ['Request By']
+        pos: [1, 3]
+      ,
+        type: 'text'
+        captions: ['Dapartment']
+        pos: [1, 4]
+      ,
+        type: 'number'
+        format: '0,000'
+        captions: ['Request Qty']
+        pos: [1, 5]
+      ,
+        type: 'text'
+        captions: ['Unit']
+        pos: [2, 1]
+      ,
+        type: 'date_range'
+        captions: ['CMD Issue Date']
+        pos: [2, 2] 
+      ,
+        type: 'date_range'
+        captions: ['Require Date']
+        pos: [2, 3] 
+      ,
+        type: 'text'
+        captions: ['Status']
+        pos: [2, 4]
+      ,
+        type: 'date_range'
+        captions: ['Tool Receive Date']
+        pos: [2, 5]
+      ,
+        type: 'text'
+        captions: ['Invoice No.']
+        pos: [3, 1]
+      ,
+        type: 'number'
+        format: '0,000'
+        captions: ['Receive Qty']
+        pos: [3, 2]
+      ,
+        type: 'number'
+        format: '0,000'
+        captions: ['Balance Qty']
+        pos: [3, 3]
+      ,
+        type: 'text'
+        captions: ['Remark']
+        pos: [3, 4]
+      ]
+
+    @items = [ form ]
+    @callParent arguments

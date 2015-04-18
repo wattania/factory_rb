@@ -6,6 +6,10 @@ Rails.application.routes.draw do
   namespace :settings do
     resources :user
   end
+
+  namespace :programs do 
+    resources :quotation, :cust_prop
+  end
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

@@ -1,0 +1,85 @@
+Ext.define 'QuotationSearch',
+  extend: 'Ext.panel.Panel'
+  border: false
+  height: FormHelper.layout(row: 4).height
+ 
+  initComponent: ->
+
+    form = FormHelper.layout
+      row: 4
+      col: 5
+      items: [
+        type: 'text'
+        captions: ['Quotation No.']
+        pos: [1, 1]
+        name: 'quotation_no'
+      ,
+        type: 'text'
+        captions: ['Customer']
+        pos: [1, 2]
+        name: 'customer'
+      ,
+        type: 'text'
+        captions: ['Create Person']
+        pos: [1, 3]
+      ,
+        type: 'date_range'
+        captions: ['Issue Date']
+        pos: [1, 4]
+      ,
+        type: 'text'
+        captions: ['Freight Term']
+        pos: [2, 1]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Exchange Rate']
+        pos: [2, 2]
+      ,
+        type: 'text'
+        captions: ['Item Code']
+        pos: [2, 3]
+      ,
+        type: 'text'
+        captions: ['Customer Code']
+        pos: [2, 4]
+      ,
+        type: 'text'
+        captions: ['Part Name']
+        pos: [3, 1]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Part Price']
+        pos: [3, 2]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Package Price']
+        pos: [3, 3]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Total Price']
+        pos: [3, 4]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Unit Price']
+        pos: [4, 1]
+      ,
+        type: 'text'
+        captions: ['PO Reference']
+        pos: [4, 2]
+      ,
+        type: 'text'
+        captions: ['Remark']
+        pos: [4, 3]
+      ,
+        type: 'text'
+        captions: ['Model']
+        pos: [1, 5]
+      ]
+
+    @items = [ form ]
+    @callParent arguments

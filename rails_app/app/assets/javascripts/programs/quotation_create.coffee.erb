@@ -1,0 +1,175 @@
+Ext.define 'QuotationCreate',
+  extend: 'Ext.form.Panel'
+  border: false
+  layout: type: 'vbox', align: 'stretch'
+  initComponent: ->
+    me = @
+    form = FormHelper.layout
+      row: 2
+      col: 6
+      items: [
+        type: 'text'
+        captions: ['Quotation No.']
+        pos: [1, 1]
+        name: 'quotation_no'
+      ,
+        type: 'text'
+        captions: ['Customer']
+        pos: [1, 2]
+        name: 'customer'
+      ,
+        type: 'text'
+        captions: ['Create Person']
+        pos: [1, 6]
+        readOnly: true
+        value: "#{USER_FIRST_NAME} #{USER_LAST_NAME}"
+      ,
+        type: 'date'
+        captions: ['Issue Date']
+        pos: [1, 4]
+      ,
+        type: 'text'
+        captions: ['Freight Term']
+        pos: [1, 5]
+      ,
+        type: 'number'
+        format: '0,000.00'
+        captions: ['Exchange Rate']
+        pos: [1, 3]
+      ]
+
+    @file_upload_panel = Ext.create 'Ext.panel.Panel',
+      height: 200
+      margin: '0 10 10 10'
+      layout: type: 'hbox', align: 'stretch'
+      border: false
+      items: [
+        title: 'Approve File'
+        flex: 1
+        dockedItems: [
+          xtype: 'toolbar'
+          dock: 'top'
+          items: [ 
+            xtype: 'button'
+            text: text_fa_icon 'upload', ''
+          ]
+        ]
+      ,
+        title: 'Calculation File'
+        flex: 1
+        dockedItems: [
+          xtype: 'toolbar'
+          dock: 'top'
+          items: [ 
+            xtype: 'button'
+            text: text_fa_icon 'upload', ''
+          ]
+        ]
+      ]
+      
+
+    @grid = Ext.create 'Ext.grid.Panel',
+      flex: 1
+      margin: '0 10 10 10'
+      plugins:
+        ptype: 'cellediting'
+        clicksToEdit: 1
+      store: Ext.create 'Ext.data.Store',
+        fields: [
+          type: 'string', name: 'item_code'
+          type: 'string', name: 'model'
+          type: 'string', name: 'sub_code'
+          type: 'string', name: 'customer_code'
+        ]
+      
+
+      dockedItems: [
+        xtype: 'toolbar'
+        dock: 'top'
+        items: [
+          xtype: 'button'
+          text: text_fa_icon 'plus', 'Add'
+          handler: ->
+            me.grid.getStore().add {}
+ 
+        ]
+      ]
+      columns: [
+        xtype:'actioncolumn'
+        width: 30
+        align: 'center'
+        items: [
+          icon: ProgHelper.img_url "file_delete.png"
+          tooltip: 'Delete'
+          handler: (grid, rowIndex, colIndex)->
+            rec = grid.getStore().getAt rowIndex
+            grid.getStore().remove rec
+        ]
+      ,
+        xtype: 'rownumberer'
+        width: 45
+      ,
+        text: 'Item Code'
+        dataIndex: 'item_code'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: '<b>Model</b>' + "<font color=red> *</font>"
+        dataIndex: 'model'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Sub Code'
+        width: 120
+        dataIndex: 'sub_code'
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Customer Code'
+        width: 120
+        dataIndex: 'customer_code'
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Part Name'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Package Price'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Total Price'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: '<b>Unit Price</b>' + "<font color=red> *</font>"
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'PO Reference'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ,
+        text: 'Remark'
+        width: 120
+        editor:
+          xtype: 'textfield'
+      ]
+
+    @items = [ 
+      form 
+    ,
+      @grid
+    ,
+      @file_upload_panel
+      
+    ]
+    @callParent arguments

@@ -82,6 +82,7 @@ ActiveRecord::Schema.define(version: 20150418100511) do
     t.string   "first_name",                                        null: false
     t.string   "last_name"
     t.boolean  "is_admin",                          default: false
+    t.string   "department",                                        null: false
     t.string   "timezone"
     t.integer  "lock_version",                      default: 0
     t.string   "created_by"

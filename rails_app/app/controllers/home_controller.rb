@@ -6,6 +6,7 @@ class HomeController < ApplicationController
     @firstname  = user.first_name
     @lastname   = user.last_name
     @is_admin   = user.is_admin
+    @username   = user.user_name
 
     @manifests = {}
     if Rails.env == 'production'

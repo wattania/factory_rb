@@ -1,0 +1,153 @@
+//= require programs/cust_prop_search
+//= require programs/cust_prop_create
+
+Ext.define 'CustPropView',
+  extend: 'Ext.panel.Panel'
+  border: false
+  layout: 'card'
+  listeners:
+    render: (me)->
+      btn_serch = me.down 'button[name=search]'
+      btn_create = me.down 'button[name=create]'
+
+      btn_create.on 'click', (btn)->
+        me.setLoading true
+        Ext.defer ()->
+          form = Ext.create 'CustPropCreate',
+            flex: 1
+
+          panel = Ext.create 'Ext.panel.Panel',
+            listeners:
+              render: ()->
+                btn_back = panel.down 'button[name=back]'
+
+                btn_back.on 'click', ()->
+                  me.setActiveItem 0
+                  me.remove me.items.getAt 1
+
+            dockedItems: [
+              xtype: 'toolbar'
+              dock: 'top'
+              items: [
+                xtype: 'button'
+                text: text_fa_icon 'save', 'Save'
+              ,
+                xtype: 'button'
+                text: text_fa_icon 'trash', 'Delete'
+                hidden: true
+              ,
+                xtype: 'button'
+                text: text_fa_icon 'arrow-left', 'Back'
+                name: 'back'
+              ]
+            ]
+            layout: type: 'vbox', align: 'stretch'
+            autoScroll: true
+            items: [
+              form
+            ]
+          me.add panel
+          me.getLayout().setActiveItem panel
+          me.setLoading false
+        , 100
+
+
+  initComponent: ->
+
+    @filter = Ext.create 'CustPropSearch'
+
+    store = Ext.create 'Ext.data.Store',
+      fields: ['a', 'b']
+
+
+    grid = Ext.create 'Ext.grid.Panel',
+      flex: 1
+      store: store 
+      dockedItems: [
+        xtype: 'pagingtoolbar'
+        store: store
+        dock: 'bottom'
+        displayInfo: true
+      ,
+        xtype: 'toolbar'
+        dock: 'top'
+        items: [
+          xtype: 'button'
+          text: text_fa_icon 'file', 'Create'
+          name: 'create'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'edit', 'Edit'
+          disabled: true
+        ]
+      ]
+      columns: [
+        xtype: 'rownumberer'
+        width: 45
+      ,
+        text: 'Document No.'
+        dataIndex: 'quotation_no'
+      ,
+        text: 'Description'
+      ,
+        text: 'Request By'
+      ,
+        text: 'Dapartment'
+      ,
+        text: 'Request Qty'
+      ,
+        text: 'Unit'
+      ,
+        text: 'CMD Issue Date'
+      ,
+        text: 'Require Date'
+      ,
+        text: 'Status'
+      ,
+        text: 'Tool Receive Date'
+      ,
+        text: 'Invoice No.'
+      ,
+        text: 'Receive Qty'
+      ,
+        text: 'Balance Qty'
+      ,
+        text: 'Remark'
+      ,
+        text: 'Document Approved'
+      ]
+
+    @items = [
+      border: false
+      layout: type: 'vbox', align: 'stretch'
+      items: [
+        xtype: 'panel'
+        border: false
+        dockedItems: [
+          xtype: 'toolbar'
+          docked: 'top'
+          items: [
+            xtype: 'button'
+            text: text_fa_icon 'search', 'Search'
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'eraser', 'Clear', 'fa-flip-horizontal'
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'file-excel-o', 'Export'
+          ]
+        ]
+        items: @filter 
+      ,
+        grid 
+      ]
+    ]
+
+    @callParent arguments
+
+Ext.define 'Program.cust_prop',
+  extend: 'MainView'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_title: -> 'Customer Properties'
+  get_view: (init, fn)->
+    fn Ext.create 'CustPropView'

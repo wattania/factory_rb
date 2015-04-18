@@ -1,0 +1,2 @@
+module Programs::QuotationHelper
+end
