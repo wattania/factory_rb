@@ -1,0 +1,170 @@
+//= require list_view_panel_base2
+
+Ext.define 'Setting.user',
+  extend: 'MainView'
+  get_title: -> 'User'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_view: (initview, fn)->
+    me = @
+    config = 
+      get_url: ()-> me.get_url()
+      get_form_edit_layout: (me, action, init, grid, btn)->
+        row: 4
+        items: [
+          xtype: 'hidden'
+          name: 'id'
+          value: init.id
+        ,
+          xtype: 'hidden'
+          name: 'lock_version'
+          value: init.lock_version
+        ,
+          type: 'text'
+          captions: ['User Name']
+          pos: [1, 1]
+          is_require: (action == 'new')
+          name: 'user_name'
+          readOnly: !(action == 'new')
+          value: init.user_name
+        ,
+          type: 'text'
+          captions: ['Password']
+          pos: [1, 2]
+          inputType: 'password'
+          name: 'password'
+          is_require: (action == 'new')
+        ,
+          type: 'text'
+          captions: ['Password Confirmation']
+          pos: [1, 3]
+          inputType: 'password'
+          name: 'password_confirmation'
+          is_require: (action == 'new')
+        ,
+          type: 'text'
+          captions: ['First Name']
+          name: 'first_name'
+          pos: [2, 1]
+          is_require: (action == 'new')
+          value: init.first_name
+        ,
+          type: 'text'
+          captions: ['Last Name']
+          name: 'last_name'
+          pos: [2, 2]
+          value: init.last_name
+        ,
+          type: 'text'
+          captions: ['Email']
+          inputType: 'email'
+          name: 'email'
+          pos: [3, 1]
+          is_require: (action == 'new')
+          value: init.email
+        ,
+          type: 'checkbox'
+          name: 'is_admin'
+          captions: ['Administrator']
+          pos: [1, 4]
+          checked: init.is_admin
+        ,
+          type: 'checkbox'
+          name: 'lock'
+          checked: init.lock
+          captions: ['Lock']
+          pos: [2, 4]  
+        ]
+      get_form_filter_layout: (self, action, init, grid, cmp)-> 
+        row: 1
+        col: 6
+        items: [
+          type: 'text'
+          name: 'user_name' 
+          pos: [1, 1]
+          captions: ['User Name']
+        ,
+          type: 'text'
+          captions: ['First Name']
+          pos: [1, 2]
+          name: 'first_name'
+        ,
+          type: 'text'
+          captions: ['Last Name']
+          pos: [1, 3]
+          name: 'last_name'
+        ,
+          type: 'radio_group'
+          pos: [1, 5]
+          name: 'is_admin'
+          captions: ['Administrator']
+          #col_span: 2
+          values: ["all", "yes", "no"]
+          default_value: "all"
+          is_horizontal: true
+          labels: ["All", "Yes", "No"]
+        ,
+          type: 'radio_group'
+          pos: [1, 6]
+          name: 'lock'
+          captions: ['Lock Status']
+          #col_span: 2
+          values: ["all", "yes", "no"]
+          default_value: "all"
+          is_horizontal: true
+          labels: ["All", "Yes", "No"]
+        ,
+          type: 'text'
+          captions: ['Email']
+          pos: [1, 4]
+          name: 'email'
+        ]
+      get_grid_list_layout: ()->
+        actions: ['new', 'edit']
+        row_numberer: {width: 40}
+        columns: [
+          type: 'text'
+          captions: ['User name']
+          name: 'user_name'
+          width: 150
+
+        ,
+          type: 'text'
+          captions: ['First Name']
+          name: 'first_name' 
+          width: 150
+        ,
+          type: 'text'
+          captions: ['Last Name'] 
+          name: 'last_name'
+          width: 150 
+        ,
+          type: 'text' 
+          captions: ['Email']
+          name: 'email' 
+          width: 150
+        ,
+          type: 'bool'
+          captions: ['Administrator']
+          name: 'is_admin'
+          render_false_value: ""
+        ,
+          type: 'text'
+          captions: ['Locked At']
+          name: 'locked_at_'
+          width: 150
+        ,
+          type: 'text'
+          name: 'id'
+          hidden: true
+        ,
+          type: 'text'
+          name: 'lock_version'
+          hidden: true
+        ,
+          type: 'text'
+          captions: ['Last Sign In At']
+          name: 'last_sign_in_at_'
+          width: 150
+        ]  
+      
+    fn Ext.create('ListViewPanelBase2', config)

@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   devise_for :users, :path => "", :controllers => {:sessions => 'session'}
   root to: "home#index"
   post '/initialize' => 'home#app_init'
+
+  namespace :settings do
+    resources :user
+  end
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

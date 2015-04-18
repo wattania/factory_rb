@@ -109,75 +109,9 @@ Ext.define 'MainPage',
       border: null
       flex: 1
       items: [
-        title: "Status List"
-        name: 'status_list'
-        listeners:
-          render: ()-> 
-          
-
+        xtype: 'panel'
         region: 'center'
-        layout: { type: 'vbox', align: 'stretch'  }
-        tools: [
-          type: 'refresh'
-          handler: ()->
-            p = @up 'panel[name=view_panel]'
-            p.setLoading true
-            me.update_status -> p.setLoading false
-            
-        ]
-        flex: 1
-        bodyPadding: 10  
-        items: [
-          border: false
-          layout: { type: 'vbox' ,align: 'stretch' }
-          defaults:
-            xtype: 'StatusMenu'
-            page: me
-          items:[
-            name: 'check_in'
-          ,
-            name: 'wait_repack' 
-          ,
-            name: 'repacking' 
-          ,
-            name: 'wait_transport_air'
-          ,
-            name: 'wait_transport_sea'
-          ,
-            name: 'on_transport_air'
-          ,
-            name: 'on_transport_sea'
-          ,
-            name: 'problem'
-          ,
-            name: 'reject'
-          ,
-            name: 'close'
-            hiddenBtn: true
-          ] 
-        ]
-      ,
-        title: "Menu"
-        name: 'menu_list'
-        region: 'east'
-        bodyPadding: 10  
-        flex: 2
-        tools: [
-          type: 'refresh'
-          handler: ()->
-            p = @up 'panel[name=view_panel]'
-            p.setLoading true
-            me.update_status -> p.setLoading false
-        ]
-        layout: { type: 'vbox', align: 'stretch' }
-        defaults:
-          xtype: 'StatusMenu'
-          page: me
-        items: [
-          name: 'calc_charge'
-        ,
-          name: 'ready'
-        ]
+        border: false
       ]
 
     @items = [ 
@@ -255,6 +189,7 @@ Ext.define 'MainPage',
           border: false
         ,
           text: '<b>Settings</b>'
+          hidden: unless IS_ADMIN then true else false
           program: 'setting'
           icon: ProgHelper.img_url "advanced.png"
           margin: '0 0 0 0'
@@ -265,78 +200,6 @@ Ext.define 'MainPage',
           menu: [
             text: 'User'
             program: 'user'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Email Notification'
-          ,
-            text: 'Google Account'
-          ,
-            text: 'Status Description'
-            program: 'status_desc'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'AIR Rate'
-            program: 'charge_rate_air'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'SEA Rate'
-            program: 'charge_rate_sea'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'EMS Rate'
-            program: 'charge_rate_ems'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Messenger Rate'
-            program: 'charge_rate_messenger'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'ค่าธรรมเนียมเริ่มต้น EMS'
-            program: 'fee_factor_ems'
-            hidden: true
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'ค่าธรรมเนียมเริ่มต้น Messenger'
-            program: 'fee_factor_messenger'
-            hidden: true
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'ตัวหาร Weight by Dimension AIR'
-            program: 'shipping_dimension_factor_air'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'ตัวหาร Weight by Dimension SEA'
-            program: 'shipping_dimension_factor_sea'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Label Printer' 
-            program: 'label_printer'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false 
-          ,
-            text: 'Wordpress'
-            program: 'wordpress'
             handler: (btn)->
               btn.setDisabled true
               me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
