@@ -11,17 +11,17 @@ RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noa
  && yum clean all
 
 ### NODE #######################################################
-COPY packages/node-v0.12.2.tar.gz /tmp
+ADD packages/node-v0.12.2.tar.gz /tmp
 WORKDIR /tmp/node-v0.12.2
 RUN ./configure && make && make install
 
 ### REDIS #######################################################
-COPY packages/redis-3.0.0.tar.gz /tmp
+ADD packages/redis-3.0.0.tar.gz /tmp
 WORKDIR /tmp/redis-3.0.0
-RUN make && cp /tmp/redis-2.8.19/src/redis-* /usr/local/bin/
+RUN make && cp /tmp/redis-3.0.0/src/redis-* /usr/local/bin/
 
 # RUBY ###########
-COPY ruby-2.2.2.tar.bz2 /tmp
+ADD packages/ruby-2.2.2.tar.bz2 /tmp
 WORKDIR /tmp/ruby-2.2.2
 RUN ./configure --disable-install-rdoc --disable-install-ri \
  && make && make install \
