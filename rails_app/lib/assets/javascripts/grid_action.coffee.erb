@@ -1,0 +1,461 @@
+Ext.define 'grid_action',
+  extend: 'Ext.panel.Panel',
+  layout: 'border'
+  border: false
+  grid_name: "__grid_action__"
+  filter_name: "__grid_filter_form__"
+  filter_panel_name: "__grid_filter_panel__"
+  action_toolbar_name: "__action_toolbar__"
+  get_url: ()-> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  #get_form_filter_layout: (init)-> {}
+  get_grid_list_layout: -> {}
+  get_record: ()->
+    @grid_list.getSelectionModel().getSelection()
+  load_page_with_select: (rest_client, key_id, fn)->
+    me = @
+    sort_param = []
+    sorts = me.grid_list.getStore().getSorters()
+    if Ext.isObject sorts
+      if Ext.isArray sorts.items 
+        for sort in sorts.items 
+          sort_param.push 
+            property: sort.getProperty()
+            direction: sort.getDirection()
+
+    unless Ext.isEmpty key_id
+
+      param = {key: key_id, page_size: me.grid_list.getStore().getPageSize() }
+      unless Ext.isEmpty sort_param
+        param.sort = JSON.stringify(sort_param)
+
+      rest_client.index 'page_no', param,
+        (res)->
+          if res.success and Ext.isNumber(res.page)
+            me.grid_list.getStore().loadPage res.page,
+              callback: (records, operation, success)->
+                me.select_row key_id
+                fn res.success if Ext.isFunction fn
+          else
+            me.grid_list.getStore().loadPage 1,
+              callback: (records, operation, success)->
+                me.select_row key_id
+                fn res.success if Ext.isFunction fn
+      ,
+        ()-> 
+          me.grid_list.getStore().loadPage 1,
+            callback: (records, operation, success)->
+              me.select_row key_id
+              fn false if Ext.isFunction fn
+    else
+      me.grid_list.getStore().loadPage 1,
+        callback: (records, operation, success)->
+          fn true if Ext.isFunction fn
+
+  select_row: (record_id)->
+    return if Ext.isEmpty record_id
+    record = null
+    @grid_list.getStore().each (rec)-> 
+      if rec.get('record_id')
+        record = rec if rec.get('record_id').toString() == record_id.toString()
+      else if rec.get('id')
+        record = rec if rec.get('id').toString() == record_id.toString()
+
+    unless Ext.isEmpty record
+      @grid_list.getSelectionModel().select record
+
+  __create_grid_button: (action)-> 
+    me = @
+    conf =
+      xtype: 'button'
+      text: action
+      action: action
+
+
+    if Ext.isFunction me.get_action_config
+      ret_conf = me.get_action_config me, action
+      if Ext.isObject ret_conf
+        ret_conf.action = action
+
+    Ext.valueFrom ret_conf, Ext.apply(conf, {disabled: true})
+
+  grid_action_layout: (actions)->
+    me = @
+    ret = []
+    if Ext.isArray actions
+
+      for action in (Ext.valueFrom actions, [])
+        console.log action
+        first = true
+        if Ext.isArray action
+          ret_button = null
+          for a in action 
+            if first
+              first = false
+              btn = me.__create_grid_button a
+              btn.sub_actions = [a]
+              ret_button = btn
+
+            else
+              ret_button.sub_actions.push a
+
+          ret.push ret_button unless Ext.isEmpty ret_button
+
+        else if Ext.isObject action
+          ret.push action
+
+        else
+          button = me.__create_grid_button action
+
+          ret.push button unless Ext.isEmpty button
+      
+      if Ext.isFunction(me.get_form_filter_layout) or Ext.isFunction(me.get_form_filter)
+        Ext.Array.insert ret, ret.length, [
+          '->'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'search', ''
+          name: 'btn_show_form_search'
+          filter_hide: true
+          handler: (btn)->
+            grid = btn.up "grid[name=#{me.grid_name}]"
+            if btn.filter_hide
+              btn.setDisabled true
+              me.show_form_filter ()->
+                btn.setText text_fa_icon 'arrow-up', ''
+                btn.setDisabled false
+                btn.filter_hide = false
+            else
+              btn.setDisabled true
+              me.hide_form_filter ()->
+                btn.setText text_fa_icon 'search', ''
+                btn.setDisabled false
+                btn.filter_hide = true
+
+        ]
+    ret
+  hide_form_filter: (fn)->
+    me = @
+    form_filter  = me.down "form[name=#{@filter_name}]"
+    filter_panel = me.down "panel[name=#{@filter_panel_name}]"
+    store = me.grid_list.getStore()
+
+    form_values = form_filter.getValues()
+    unless Ext.isEmpty filter_panel 
+      form_filter.animate
+        duration: 250
+        to:
+          y: 0
+        listeners:
+          afteranimate: ()->
+            for prop, val of form_values
+              unless Ext.isEmpty store.getProxy().extraParams[prop]
+                delete store.getProxy().extraParams[prop]
+
+            form_values
+            filter_panel.removeAll()
+            me.remove filter_panel
+            fn()
+      
+    else
+      fn()
+
+  show_form_filter: (fn)->
+    me = @
+    filter = me.down "panel[name=#{@filter_panel_name}]"
+    if Ext.isEmpty filter
+      form = null
+      if Ext.isFunction me.get_form_filter_layout
+        layout = me.get_form_filter_layout Ext.valueFrom me.init_filter, {}
+        form = Ext.create 'Ext.form.Panel', FormHelper.layout(layout)
+
+      else if Ext.isFunction me.get_form_filter 
+        form = me.get_form_filter Ext.valueFrom me.init_filter, {}
+
+      unless Ext.isEmpty form
+        form.name = me.filter_name
+        h = form.height  
+      
+        form.on 'render', ()-> 
+          for cmp in form.query 'component[name]'
+            continue if cmp.xtype in ['checkboxfield', 'checkbox']
+            cmp.on 'specialkey', (field, e)->
+              if (e.getKey() == e.ENTER) 
+                me.grid_list.getStore().loadPage 1
+              return
+
+          form.getEl().slideIn 't',
+            duration: 200
+            listeners:
+              afteranimate: -> fn()
+
+        me.add
+          xtype: 'panel'
+          name: me.filter_panel_name
+          region: 'north'
+          height: h + 50
+          layout: { type: 'vbox', align: 'stretch' } 
+          items: [ form ] 
+          dockedItems: [
+            xtype: 'toolbar'
+            dock: 'top'
+            items: [
+              xtype: 'button'
+              text: text_fa_icon 'search', 'Search'
+              handler: (btn)->
+                btn.setDisabled true
+                me.grid_list.getStore().loadPage 1,
+                  callback: -> btn.setDisabled false
+            ,
+              xtype: 'button'
+              text: text_fa_icon 'eraser', 'Clear'
+              handler: (btn)->
+                btn.setDisabled true
+                form.reset()
+                me.grid_list.getStore().loadPage 1,
+                  callback: -> btn.setDisabled false
+            ]
+          ]
+          
+
+    else
+
+  grid_layout: (a_config)->
+    config = (if Ext.isObject a_config then a_config else {})
+    columns = (if Ext.isArray config.columns then config.columns else [])
+    actions = (if Ext.isArray config.actions then config.actions else [])
+
+    fields = []
+    fields = a_config.fields if Ext.isArray a_config.fields
+    for action in actions
+      Ext.Array.insert fields, 0, [
+        {name: "set_action_#{action}_disabled", type: 'boolean', defaultValue: false }
+      ]
+
+    grid_columns = []
+
+    if Ext.isObject config.row_numberer
+      grid_columns.push Ext.apply({xtype: 'rownumberer'}, config.row_numberer)
+      
+    else if Ext.isNumeric config.row_numberer
+      grid_columns.push
+        xtype: 'rownumberer'
+        width: config.row_numberer
+
+    for col in columns
+      if Ext.isObject col
+        field = {}
+        column = {}
+
+        fields.push field
+        grid_columns.push column
+
+        if col.name
+          field.name = col.name 
+          column.dataIndex = col.name
+
+        column.text  = ProgHelper.get_lang col.captions if Ext.isArray col.captions
+        column.width = col.width if col.width
+
+        switch col.type
+          when 'text'
+            field.type = 'string'
+
+          when 'number'
+            field.type    = 'number'
+            column.align  = 'right'
+            column.xtype  = 'numbercolumn'
+            column.format = col.format if col.format
+
+         
+        Ext.apply column, col
+
+    fields: fields
+    columns: grid_columns
+    actions: actions
+
+  check_action_selected: (grid, toolbar)->
+    me = @
+    selected = grid.getSelectionModel().getSelection()
+    
+    return if Ext.isEmpty toolbar
+
+    record = selected[0]
+    return if Ext.isEmpty record
+    
+    v = Ext.valueFrom record.get('select_action'), ''
+    result = []
+    top_toolbar = toolbar
+    for action in v.split('|')
+      actions = action.split(',')
+      continue if actions.length <= 1 
+      if actions.length == 2 
+        toolbar.items.each (item, index)->
+          if (index.toString() == actions[0].toString())
+            unless item.action == actions[1]
+              if Ext.isArray item.sub_actions
+                found = false
+                for sub_action in item.sub_actions 
+                  continue if found
+                  if sub_action == actions[1]
+                    found = true
+                    new_button = me.__create_grid_button sub_action
+                     
+                    new_button.sub_actions = []
+                    for a in item.sub_actions then new_button.sub_actions.push a 
+                    Ext.Array.insert new_button.sub_actions, 0, [item.action] if new_button.sub_actions.indexOf(item.action) == -1
+                    result[index] = new_button
+          return 
+ 
+    for res, index in result
+      unless Ext.isEmpty res 
+        ori = top_toolbar.items.getAt(index)
+        top_toolbar.insert index, res 
+        top_toolbar.remove ori, true
+
+  check_action_active: (grid, toolbar)->
+    me = @
+    return if Ext.isEmpty toolbar
+
+    selected = grid.getSelectionModel().getSelection()
+    unless Ext.isEmpty toolbar
+      if selected.length == 0
+        toolbar.items.each (tool)->
+          if tool.active_selected
+            tool.setDisabled true
+
+      else
+        toolbar.items.each (tool)->
+          if tool.active_selected
+            tool.setDisabled false
+
+  check_action_attribute: (grid, toolbar)->
+    me = @
+    return if Ext.isEmpty toolbar
+
+    selected = grid.getSelectionModel().getSelection()
+    for record in selected
+      toolbar.items.each (tool)-> 
+        if tool.action
+          bool = record.get "set_action_#{tool.action}_disabled"
+          tool.setDisabled bool if Ext.isBoolean bool
+          
+  check_action_do_dbl_click: (grid, toolbar)->
+    me = @
+    return if Ext.isEmpty toolbar
+
+    selected = grid.getSelectionModel().getSelection()
+    if Ext.isFunction me.do_action_dbl_click
+      found = false
+      toolbar.items.each (tool)-> 
+        unless found
+          if (tool.handle_dbl_click) and tool.action and !tool.disabled
+            found = true
+            me.do_action_dbl_click me, tool.action, tool, selected
+    else
+      console.log "-no-do_action_dbl_click-"
+
+  set_action_disabled: (action_name, bool)->
+    me = @
+    toolbar = me.grid_list.down "toolbar[name=#{me.action_toolbar_name}]"
+    toolbar.items.each (tool)->
+      tool.setDisabled bool if tool.action == action_name
+
+  initComponent: ->
+    me = @
+    ori_layout = @get_grid_list_layout()
+    layout = @grid_layout ori_layout
+
+    store_config =
+      autoLoad: if Ext.valueFrom(ori_layout.auto_load, true) then true else false
+      fields: layout.fields
+      remoteSort: true
+      proxy:
+        type: 'ajax'
+        url: me.get_url()
+        extraParams:
+          method: 'list'
+        reader:
+          type: 'json'
+          rootProperty: 'rows'
+          totalProperty: 'total'
+        listeners:
+          exception: (request, result)->
+            try
+              response = Ext.JSON.decode result.responseText 
+              unless response.success
+                Ext.create('ErrorBox',
+                  message: response.message
+                  backtrace: response.backtrace
+                  ).show()
+            catch e
+              Ext.Msg.alert '', result.responseText
+
+    store = Ext.create 'Ext.data.Store', store_config
+    store.on 'load', (store)-> 
+      toolbar = me.grid_list.down "toolbar[name=#{me.action_toolbar_name}]"
+      me.check_action_active me.grid_list, toolbar
+
+    store.on 'beforeload', (store)-> 
+      form_filter = me.down "form[name=#{me.filter_name}]"
+      unless Ext.isEmpty form_filter
+        if form_filter.getForm().isValid()
+          Ext.apply store.getProxy().extraParams, {method: 'list'}
+          Ext.apply store.getProxy().extraParams, form_filter.getValues()    
+          true
+        else
+          false
+      else
+        true
+      
+    config =
+      name: @grid_name
+      flex: 1
+      region: 'center'
+      store: store 
+      columns: layout.columns
+      dockedItems: [
+        xtype: 'pagingtoolbar'
+        store: store
+        displayInfo: true 
+        dock: 'bottom'
+      ]
+
+    actiontoolbars = me.grid_action_layout layout.actions
+    unless Ext.isEmpty actiontoolbars
+      Ext.Array.insert config.dockedItems, 0, [
+        xtype: 'toolbar'
+        name: @action_toolbar_name
+        dock: 'top'
+        items: actiontoolbars
+      ]
+ 
+    if Ext.isObject ori_layout.config 
+      for prop, val of ori_layout.config
+        config[prop] = val
+
+    
+    @grid_list = Ext.create 'Ext.grid.Panel', config
+    @grid_list.on 'itemdblclick', (view, record, item, index, e, eOpts )-> 
+      toolbar = me.grid_list.down "toolbar[name=#{me.action_toolbar_name}]"
+      me.check_action_selected me.grid_list, toolbar
+      me.check_action_active me.grid_list, toolbar
+      me.check_action_attribute me.grid_list, toolbar
+      me.check_action_do_dbl_click me.grid_list, toolbar
+      return
+
+    @grid_list.on 'selectionchange', (view, selected)->
+      toolbar = me.grid_list.down "toolbar[name=#{me.action_toolbar_name}]"
+      me.check_action_selected me.grid_list, toolbar
+      me.check_action_active me.grid_list, toolbar
+      me.check_action_attribute me.grid_list, toolbar
+      return
+
+    @grid_list.on 'render', ()->
+      if Ext.isFunction(me.get_form_filter) or Ext.isFunction(me.get_form_filter_layout)
+        if Ext.valueFrom ori_layout.show_filter, true
+          btn_search = me.down('button[name=btn_show_form_search]')
+          btn_search.handler btn_search
+
+    @items = [ @grid_list ]
+
+    @callParent arguments

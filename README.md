@@ -1,2 +1,2 @@
 # factory_rb
-Test Rails Frameword
+Test Rails Framework
