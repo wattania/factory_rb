@@ -1,0 +1,5 @@
+FROM busybox
+
+VOLUME /opt/pgdata
+
+ENTRYPOINT ["/bin/true"]
