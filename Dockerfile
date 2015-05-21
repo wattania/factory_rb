@@ -8,8 +8,8 @@ RUN chmod 755 /etc/init.d/redis
 COPY config/monit/redis.conf /etc/monit.d/redis.conf
 
 ### POSTGRESQL
-COPY config/postgresql/postgresql-9.4 /etc/init.d/postgresql-9.4
-COPY config/monit/postgresql.conf /etc/monit.d/postgresql.conf
+#COPY config/postgresql/postgresql-9.4 /etc/init.d/postgresql-9.4
+#COPY config/monit/postgresql.conf /etc/monit.d/postgresql.conf
 
 ## NGINX 
 COPY config/nginx/nginx.conf /opt/nginx/conf/nginx.conf

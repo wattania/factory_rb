@@ -2,23 +2,28 @@ FROM centos:centos6.6
 MAINTAINER Wattana Inthaphong <wattaint@gmail.com>
 # enable centos plus repo and install epel repo
 RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm \
- && rpm -iUvh http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm \
- && yum update -y \
- && yum install -y make patch libyaml-devel libffi-devel glibc-headers autoconf gcc-c++ glibc-devel patch readline-devel zlib-devel openssl-devel bzip2 automake libtool bison \
- && yum install -y postgresql94 postgresql94-devel postgresql94-libs postgresql94-server \
- && yum install -y wget monit mlocate vim which tar \
- && yum install -y curl-devel pcre-devel \
- && yum clean all
+&& rpm -iUvh http://yum.postgresql.org/9.4/redhat/rhel-6-x86_64/pgdg-centos94-9.4-1.noarch.rpm \
+&& yum update -y \
+&& yum install -y make patch libyaml-devel libffi-devel glibc-headers autoconf gcc-c++ glibc-devel patch readline-devel zlib-devel openssl-devel bzip2 automake libtool bison \
+&& yum install -y postgresql94 postgresql94-devel postgresql94-libs postgresql94-server \
+&& yum install -y wget monit mlocate vim which tar git \
+&& yum install -y curl-devel pcre-devel \
+|| yum clean all
 
 ### NODE #######################################################
-ADD packages/node-v0.12.2.tar.gz /tmp
-WORKDIR /tmp/node-v0.12.2
-RUN ./configure && make && make install
+ADD packages/node-v0.12.3.tar.gz /tmp
+WORKDIR /tmp/node-v0.12.3
+RUN ./configure \
+&& make \
+&& make install \
+&& rm -rf /tmp/node-v0.12.3
 
 ### REDIS #######################################################
-ADD packages/redis-3.0.0.tar.gz /tmp
-WORKDIR /tmp/redis-3.0.0
-RUN make && cp /tmp/redis-3.0.0/src/redis-* /usr/local/bin/
+ADD packages/redis-3.0.1.tar.gz /tmp
+WORKDIR /tmp/redis-3.0.1
+RUN make \
+&& cp /tmp/redis-3.0.1/src/redis-* /usr/local/bin/ \
+&& rm -rf /tmp/redis-3.0.1
 
 # RUBY ###########
 ADD packages/ruby-2.2.2.tar.bz2 /tmp
@@ -26,11 +31,13 @@ WORKDIR /tmp/ruby-2.2.2
 RUN ./configure --disable-install-rdoc --disable-install-ri \
  && make && make install \
  && gem install --no-rdoc --no-ri rails -v '4.2.1' \
- && gem install --no-rdoc --no-ri pg -v '0.18.1' -- --with-pg_config=/usr/pgsql-9.4/bin/pg_config \
+ && gem install --no-rdoc --no-ri pg -v '0.18.2' -- --with-pg_config=/usr/pgsql-9.4/bin/pg_config \
  && gem install therubyracer --no-ri --no-rdoc \
- && gem install --no-rdoc --no-ri passenger -v '5.0.6' \
- && passenger-install-nginx-module --auto
+ && gem install --no-rdoc --no-ri passenger -v '5.0.8' \
+ && passenger-install-nginx-module --auto \
+ && rm -rf /tmp/ruby-2.2.2
 
 WORKDIR /tmp
-RUN rails new rails_app --database=postgresql
+RUN rails new rails_app --database=postgresql \
+&& rm -rf /tmp/rails_app
 WORKDIR /
