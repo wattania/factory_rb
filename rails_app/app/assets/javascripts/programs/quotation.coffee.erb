@@ -5,27 +5,78 @@ Ext.define 'QuotationView',
   extend: 'Ext.panel.Panel'
   border: false
   layout: 'card'#type: 'vbox', align: 'stretch'
-  filter_data: {}
   listeners:
     render: (me)->
-      btn_serch = me.down 'button[name=search]'
       btn_create = me.down 'button[name=create]'
 
-      btn_create.on 'click', (btn)->
+      btn_create.on 'click', ()->
+        main_page = me.up 'panel[name=main_page]'
+        #close_tool = main_page.down 'tool'
+        #close_tool.setVisible false
+
         me.setLoading true
-        Ext.defer ()->
-          form = Ext.create 'QuotationCreate',
-            flex: 1
+        me.show_form_page btn_create.text, "create", (error)->
+          me.setLoading false
 
-          panel = Ext.create 'Ext.panel.Panel',
-            listeners:
-              render: ()->
-                btn_back = panel.down 'button[name=back]'
+  get_form: (name, init)->
+    console.log "get_form", init
+    me = @
+    Ext.create "QuotationCreate",
+      init: init
+      rest_client: me.rest_client
 
-                btn_back.on 'click', ()->
-                  me.setActiveItem 0
-                  me.remove me.items.getAt 1
+  add_filter: (name, type, caption)->
+    me = @
+    cmp = Ext.create 'Ext.panel.Panel',
+      xtype: 'panel'
+      layout: type: 'hbox', align: 'stretch'
+      height: 70
+      border: false
+      items: [
+        layout: type: 'vbox'#, align: 'stretch'
+        border: false
+        bodyPadding: '5 0 0 2'
+        items: [
+          xtype: 'button'
+          text: text_fa_icon 'times', ''
+          cls: 'filter_remove_btn'
+          cmp: cmp
+          handler: (btn)->
+            me.filter_form.remove cmp
+        ,
+          flex: 1
+          border: false 
+        ]
+      ,
+        border: false
+        layout: type: 'vbox' 
+        margin: '5 0 0 5'
+        items: [
+          xtype: 'x_date_range'
+          width: 200
+          name: name
+          captions: caption
+        ]
+      ]
 
+    @filter_form.add cmp
+      
+  show_form_page: (title, name, callback)->
+    me = @
+
+    main_page = me.up 'panel[name=main_page]'
+    main_page.set_title main_page.getTitle() + " > #{title}"
+
+    form_name = "form"
+    form_name += "_#{name}" unless Ext.isEmpty name
+
+    me.rest_client.create form_name, {},
+      (res)->
+        if res.success
+
+          form = me.get_form name, res.data
+        
+          n = me.add  
             dockedItems: [
               xtype: 'toolbar'
               dock: 'top'
@@ -34,53 +85,51 @@ Ext.define 'QuotationView',
                 text: text_fa_icon 'save', 'Save'
               ,
                 xtype: 'button'
-                text: text_fa_icon 'trash', 'Delete'
-                hidden: true
-              ,
-                xtype: 'button'
                 text: text_fa_icon 'arrow-left', 'Back'
-                name: 'back'
+                handler: ()->
+                  main_page.restore_title()
+                  me.getLayout().setActiveItem 0
+                  me.remove n
               ]
             ]
-            layout: type: 'vbox', align: 'stretch'
-            autoScroll: true
-            items: [
-              form
-            ]
-          me.add panel
-          me.getLayout().setActiveItem panel
-          me.setLoading false
-        , 100
+            layout: 'fit'
+            items: form
 
+          me.getLayout().setActiveItem n
+
+        callback res.success
+    ,
+      ()->
+        callback()
 
   initComponent: ->
-
-    @filter = Ext.create 'QuotationSearch'
+    me = @ 
 
     store = Ext.create 'Ext.data.Store',
       fields: ['a', 'b']
 
-
-    grid = Ext.create 'Ext.grid.Panel',
+    @grid = Ext.create 'Ext.grid.Panel',
+      region: 'center'
       flex: 1
       store: store 
       dockedItems: [
-        xtype: 'pagingtoolbar'
-        store: store
-        dock: 'bottom'
-        displayInfo: true
-      ,
         xtype: 'toolbar'
         dock: 'top'
         items: [
           xtype: 'button'
           text: text_fa_icon 'file', 'Create'
           name: 'create'
+          name: 'create'
         ,
           xtype: 'button'
-          text: text_fa_icon 'edit', 'Edit'
+          text: text_fa_icon 'edit', 'View'
           disabled: true
         ]
+      ,
+        xtype: 'pagingtoolbar'
+        store: store
+        dock: 'bottom'
+        displayInfo: true
       ]
       columns: [
         xtype: 'rownumberer'
@@ -124,37 +173,59 @@ Ext.define 'QuotationView',
         text: 'Calc.File'
       ]
 
-    @items = [ 
+    @filter_form = Ext.create 'Ext.form.Panel',
       border: false
+      autoScroll: true 
       layout: type: 'vbox', align: 'stretch'
+
+    @items = [ 
+      xtype: 'panel'
+      border: false
+      layout: 'border'
       items: [
+        @grid
+      ,
         xtype: 'panel'
-        border: false
+        region: 'west'
+        title: 'Filter'
         dockedItems: [
           xtype: 'toolbar'
-          docked: 'top'
+          dock: 'top'
           items: [
             xtype: 'button'
+            text: text_fa_icon 'plus', 'Add'
+            menu: [
+              text: 'Quotation No.'
+              handler: ()->
+                me.add_filter "xx", "", ["Quotation No."]
+            ]
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'eraser', 'Clear', 'fa-flip'
+            handler: ()->
+              me.filter_form.removeAll()
+          ,
+            '->'
+          ,
+            xtype: 'button'
             text: text_fa_icon 'search', 'Search'
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'eraser', 'Clear', 'fa-flip-horizontal'
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'file-excel-o', 'Export'
           ]
         ]
-        items: @filter 
-      ,
-        grid 
+        width: 400
+        collapsed: true
+        collapsible: true
+        layout: 'fit'
+        items: [
+          @filter_form
+        ]
       ]
     ]
-
     @callParent arguments
+
 
 Ext.define 'Program.quotation',
   extend: 'MainView'
   get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
   get_title: -> 'Quotation'
   get_view: (init, fn)->
-    fn Ext.create 'QuotationView'
+    fn Ext.create 'QuotationView', rest_client: @rest_client

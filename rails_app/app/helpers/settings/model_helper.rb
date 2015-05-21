@@ -1,0 +1,2 @@
+module Settings::ModelHelper
+end

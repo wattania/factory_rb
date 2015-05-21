@@ -1,0 +1,2 @@
+module Settings::UnitPriceHelper
+end

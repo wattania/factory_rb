@@ -1,0 +1,13 @@
+en:
+  activerecord:
+    models: 
+      user: "Customer"
+    attributes:
+      user:
+        email: "Email address"
+    errors:
+      models:
+        tb_quotation_item:
+          attributes:
+            ref_model_uuid:
+              blank: "cannot be empty %{value}DD"

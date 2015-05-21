@@ -1,0 +1,74 @@
+//= require list_view_panel_base2
+
+Ext.define 'Setting.unit_price',
+  extend: 'MainView'
+  get_title: -> 'Settings > Unit Price'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_view: (initview, fn)->
+    me = @
+    config = 
+      get_url: ()-> me.get_url()
+      get_form_edit_layout: (me, action, init, grid, btn)->
+        row: 4
+        items: [
+          xtype: 'hidden'
+          name: 'id'
+          value: init.id
+        ,
+          xtype: 'hidden'
+          name: 'lock_version'
+          value: init.lock_version
+        ,
+          type: 'text'
+          captions: ['Unit Name']
+          pos: [1, 1]
+          is_require: true
+          name: 'unit_name' 
+          value: init.unit_name
+        ,
+          type: 'text'
+          captions: ['Remark']
+          pos: [1, 2]
+          inputType: 'remark'
+          name: 'remark'
+          value: init.remark
+        ]
+      get_form_filter_layout: (self, action, init, grid, cmp)-> 
+        row: 1
+        col: 6
+        items: [
+          type: 'text'
+          name: 'unit_name' 
+          pos: [1, 1]
+          captions: ['Unit Name']
+        ,
+          type: 'text'
+          captions: ['Remark']
+          pos: [1, 2]
+          name: 'remark'
+        ]
+      get_grid_list_layout: ()->
+        actions: ['new', 'edit']
+        row_numberer: {width: 40}
+        columns: [
+          type: 'text'
+          captions: ['Unit Name']
+          name: 'unit_name'
+          width: 200
+
+        ,
+          type: 'text'
+          captions: ['Remark']
+          name: 'remark' 
+          width: 300
+        ,
+          type: 'text'
+          name: 'id'
+          hidden: true
+        ,
+          type: 'text'
+          name: 'lock_version'
+          hidden: true
+        ]  
+      
+    fn Ext.create('ListViewPanelBase2', config)

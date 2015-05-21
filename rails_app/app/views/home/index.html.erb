@@ -23,9 +23,11 @@
 
 <script>  document.getElementById('loading-message').innerHTML = 'Loading Core API ..'; </script>
 <% if Rails.env == 'production' %>
-  <script type="text/javascript" src="http://cdn.sencha.com/ext/gpl/5.1.0/build/ext-all.js"></script>   
+  <!-- <script type="text/javascript" src="http://cdn.sencha.com/ext/gpl/5.1.0/build/ext-all.js"></script> -->
+  <%= javascript_include_tag    "/ext-5.1.0/build/ext-all"  %>
 <% else %>
-  <script type="text/javascript" src="http://cdn.sencha.com/ext/gpl/5.1.0/build/ext-all-debug.js"></script> 
+  <%= javascript_include_tag    "/ext-5.1.0/build/ext-all-debug"  %>
+  <!-- <script type="text/javascript" src="http://cdn.sencha.com/ext/gpl/5.1.0/build/ext-all-debug.js"></script> --> 
 <% end %>
 
 <script> document.getElementById('loading-message').innerHTML = 'Loading Application ..'; </script>

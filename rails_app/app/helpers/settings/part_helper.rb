@@ -1,0 +1,2 @@
+module Settings::PartHelper
+end

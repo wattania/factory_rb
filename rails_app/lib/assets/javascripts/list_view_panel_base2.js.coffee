@@ -105,6 +105,8 @@ Ext.define 'ListViewPanelBase2',
       form_action: form
       #tab: tab.activeTab
       handler: (cmp)->
+        selected = grid.getSelectionModel().getSelection()
+
         form_basic = cmp.form_action.getForm()
         if form_basic.isDirty() 
            
@@ -118,10 +120,21 @@ Ext.define 'ListViewPanelBase2',
             buttons: Ext.Msg.OKCANCEL
             fn: (button1)->
               if button1 == 'ok'
-                me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp
+
+                record_id = -1
+                if selected.length == 1
+                  record_id = selected[0].get('record_id')
+                record_id = -1 if Ext.isEmpty record_id
+                
+                me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp, record_id
 
         else
-          me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp
+          record_id = -1
+          if selected.length == 1
+            record_id = selected[0].get('record_id')
+          record_id = -1 if Ext.isEmpty record_id
+
+          me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp, record_id
           #me.__back_to_main()
           #cmp.tab.setTitle cmp.tab.ori_title
 
@@ -189,7 +202,7 @@ Ext.define 'ListViewPanelBase2',
                               if Ext.isFunction Ext.valueFrom(button.initialConfig.create_form, {}).after_save_form
                                 button.initialConfig.create_form.after_save_form me, response, cmp.form_action, button, grid
                               
-                              me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp 
+                              me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp, response.record_id
                                 
                             return
                           return
@@ -209,7 +222,7 @@ Ext.define 'ListViewPanelBase2',
                             if Ext.isFunction Ext.valueFrom(button.initialConfig.create_form, {}).after_save_form
                               button.initialConfig.create_form.after_save_form me, response, cmp.form_action, button, grid
 
-                            me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp
+                            me.__back_to_main Ext.valueFrom(button.initialConfig.create_form, {}).mode, cmp, response.record_id
                           return
                         return
                     ,
@@ -264,7 +277,7 @@ Ext.define 'ListViewPanelBase2',
           me.add panel
           me.getLayout().setActiveItem 1
       
-  __back_to_main: (mode, cmp)-> 
+  __back_to_main: (mode, cmp, record_id)-> 
     me = @
 
     switch mode
@@ -273,18 +286,20 @@ Ext.define 'ListViewPanelBase2',
       else 
         main = me.items.getAt 0
         me.getLayout().setActiveItem 0 
-        main.load_grid() if Ext.isFunction main.load_grid 
+        
+        if Ext.isFunction(main.load_grid) and record_id != -1
+          main.load_grid record_id
+
         form = me.items.getAt(1)
         me.remove form
     return
   do_create_form: (me, action, grid, cmp, config, callback)->
-    console.log "--do_create_form", config.init
+
     load_data = if config.load_data then true else false
     
     layout = null
     if Ext.isObject config
       if Ext.isFunction config.init
-        console.log "-a-"
         config.init me, grid, cmp, config, (init_data)->
           me.__do_init_form me, action, init_data, load_data, grid, cmp, (init)->
             if Ext.isObject init
@@ -790,7 +805,17 @@ Ext.define 'ListViewPanelBase2',
 
       form_filter = me.__create_form_filter me, grid
       main_panel.grid = grid
-      main_panel.load_grid =()-> @grid.getStore().load()
+      main_panel.load_grid =(record_id)->
+        self = @ 
+        @grid.getStore().load (records, operation, success)-> 
+          if record_id  
+            record = null
+            self.grid.getStore().each (rec)->  
+              record = rec if rec.get('record_id') == record_id
+            
+            unless Ext.isEmpty record 
+              self.grid.getSelectionModel().select record
+
       unless Ext.isEmpty form_filter
         main_panel.items.push form_filter 
         grid.dockedItems.each (toolbar)->

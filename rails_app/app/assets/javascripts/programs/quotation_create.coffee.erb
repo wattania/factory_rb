@@ -4,6 +4,9 @@ Ext.define 'QuotationCreate',
   layout: type: 'vbox', align: 'stretch'
   initComponent: ->
     me = @
+
+    init = Ext.valueFrom me.initialConfig.init, {}
+    console.log init
     form = FormHelper.layout
       row: 2
       col: 6
@@ -13,10 +16,17 @@ Ext.define 'QuotationCreate',
         pos: [1, 1]
         name: 'quotation_no'
       ,
-        type: 'text'
-        captions: ['Customer']
+        xtype: 'combo'
         pos: [1, 2]
-        name: 'customer'
+        fieldLabel: 'Customer'
+        forceSelection: true
+        labelAlign: 'top'
+        store: Ext.create 'Ext.data.Store',
+          fields: ['uuid', 'cust_name']
+          data: init.customers
+        queryMode: 'local'
+        displayField: 'cust_name'
+        valueField: 'uuid'
       ,
         type: 'text'
         captions: ['Create Person']
@@ -28,9 +38,17 @@ Ext.define 'QuotationCreate',
         captions: ['Issue Date']
         pos: [1, 4]
       ,
-        type: 'text'
-        captions: ['Freight Term']
+        xtype: 'combo'
         pos: [1, 5]
+        fieldLabel: 'Freight Term'
+        forceSelection: true
+        labelAlign: 'top'
+        store: Ext.create 'Ext.data.Store',
+          fields: ['uuid', 'freight_term']
+          data: init.freight_terms
+        queryMode: 'local'
+        displayField: 'freight_term'
+        valueField: 'uuid'
       ,
         type: 'number'
         format: '0,000.00'
@@ -80,6 +98,7 @@ Ext.define 'QuotationCreate',
           type: 'string', name: 'model'
           type: 'string', name: 'sub_code'
           type: 'string', name: 'customer_code'
+          type: 'string', name: 'unit_price'
         ]
       
 
@@ -87,11 +106,17 @@ Ext.define 'QuotationCreate',
         xtype: 'toolbar'
         dock: 'top'
         items: [
-          xtype: 'button'
-          text: text_fa_icon 'plus', 'Add'
-          handler: ->
-            me.grid.getStore().add {}
- 
+          xtype: 'upload5'
+          text: text_fa_icon 'upload', ''
+          callback: (err, data)->
+            return if err
+            me.grid.setLoading true
+            me.rest_client.update data.file_hash, "process_file", {},
+              ()->
+                me.grid.setLoading false
+            ,
+              ()->
+                me.grid.setLoading false
         ]
       ]
       columns: [
@@ -115,11 +140,18 @@ Ext.define 'QuotationCreate',
         editor:
           xtype: 'textfield'
       ,
-        text: '<b>Model</b>' + "<font color=red> *</font>"
+        text: 'Model'
         dataIndex: 'model'
         width: 120
         editor:
-          xtype: 'textfield'
+          xtype: 'combo'
+          store: Ext.create 'Ext.data.Store',
+            fields: ['uuid', 'model_name']
+            data: init.models
+          forceSelection: true
+          queryMode: 'local'
+          displayField: 'model_name'
+          valueField: 'model_name'
       ,
         text: 'Sub Code'
         width: 120
@@ -138,6 +170,9 @@ Ext.define 'QuotationCreate',
         editor:
           xtype: 'textfield'
       ,
+        text: 'Part Price'
+        width: 120
+      ,
         text: 'Package Price'
         width: 120
         editor:
@@ -148,10 +183,18 @@ Ext.define 'QuotationCreate',
         editor:
           xtype: 'textfield'
       ,
-        text: '<b>Unit Price</b>' + "<font color=red> *</font>"
+        text: 'Unit Price'
+        dataIndex: 'unit_price'
         width: 120
         editor:
-          xtype: 'textfield'
+          xtype: 'combo'
+          store: Ext.create 'Ext.data.Store',
+            fields: ['uuid', 'unit_name']
+            data: init.unit_prices
+          forceSelection: true
+          queryMode: 'local'
+          displayField: 'unit_name'
+          valueField: 'unit_name'
       ,
         text: 'PO Reference'
         width: 120
