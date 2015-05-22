@@ -14,6 +14,13 @@ DEFAULT_FOLDERS_TO_SYNC = [{:src => VAGRANT_ROOT, :dest => VAGRANT_ROOT}]
 # Set default provider
 #ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'parallels'
+## check provider
+if ARGV[1] and \
+   (ARGV[1].split('=')[0] == "--provider" or ARGV[2])
+  provider = (ARGV[1].split('=')[1] || ARGV[2])
+else
+  provider = (ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_sym
+end
 
 # Parse .gitignore style files and return the entries within
 def parse_ignore_file(file)
@@ -53,13 +60,12 @@ def folders_to_sync
 end
 
 Vagrant.require_version ">= 1.7.2"
-
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.define "boot2docker_parellel"
-  #config.vm.box = "blinkreaction/boot2docker"
-  config.vm.box = "parallels/boot2docker"
-  config.vm.box_version = "1.6.0"
-  config.vm.box_check_update = false
+  config.vm.define "boot2docker_#{provider}"
+  #config.vm.box = "-"
+  #config.vm.box = "parallels/boot2docker"
+  #config.vm.box_version = "1.6.0"
+  #config.vm.box_check_update = false
 
   # When syncing, exclude any files in .gitignore or .dockerignore
   excludes = (parse_ignore_file(".gitignore") + parse_ignore_file(".dockerignore")).uniq
@@ -84,8 +90,13 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.gatling.latency = 0.5
 
   config.ssh.insert_key = false
-=begin
-  config.vm.provider "virtualbox" do |v|
+ 
+  config.vm.provider "virtualbox" do |v, override|
+    #override.vm.define "boot2docker_vbx"
+    override.vm.box = "blinkreaction/boot2docker"
+    override.vm.box_version = "1.6.0"
+    override.vm.box_check_update = false
+
     v.gui = false
     v.name = VAGRANT_FOLDER_NAME + "_boot2docker"
     v.cpus = 1
@@ -95,16 +106,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]    
     v.customize ["modifyvm", :id, "--nictype1", "virtio"]
   end
-=end
-  config.vm.provider "parallel" do |v|
+ 
+  config.vm.provider "parallels" do |v, override|
+    #override.vm.define "boot2docker_prl"
+    override.vm.box = "parallels/boot2docker"
+    override.vm.box_version = "1.6.0"
+    override.vm.box_check_update = false
+
     v.name = VAGRANT_FOLDER_NAME + "_boot2docker_parellel"
     v.update_guest_tools = true
-    v.memory = 4096
+    v.memory = 2048
     v.cpus = 1
     v.optimize_power_consumption = false
   end
 
-  config.vm.network "forwarded_port", guest: 3000, host: 3003
+  #config.vm.network "forwarded_port", guest: 3000, host: 3003
 
   # Allow Mac OS X docker client to connect to Docker without TLS auth.
   # https://github.com/deis/deis/issues/2230#issuecomment-72701992
