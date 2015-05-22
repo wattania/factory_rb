@@ -1,10 +1,10 @@
 class Programs::QuotationController < ResourceHelperController
   def create_form_create result
     result[:data] = {}
-    result[:data][:customers]     = RefCustomer.dropdown
-    result[:data][:freight_terms] = RefFreightTerm.dropdown
-    result[:data][:unit_prices]   = RefUnitPrice.dropdown
-    result[:data][:models]        = RefModel.dropdown
+    result[:data][:customers]     = RefCustomer.ref_dropdown
+    result[:data][:freight_terms] = RefFreightTerm.ref_dropdown
+    result[:data][:unit_prices]   = RefUnitPrice.ref_dropdown
+    result[:data][:models]        = RefModel.ref_dropdown
   end
 
   def update_process_file result

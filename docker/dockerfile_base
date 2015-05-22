@@ -6,7 +6,7 @@ RUN rpm -iUvh http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noa
 && yum update -y \
 && yum install -y make patch libyaml-devel libffi-devel glibc-headers autoconf gcc-c++ glibc-devel patch readline-devel zlib-devel openssl-devel bzip2 automake libtool bison \
 && yum install -y postgresql94 postgresql94-devel postgresql94-libs postgresql94-server \
-&& yum install -y wget monit mlocate vim which tar git \
+&& yum install -y wget monit mlocate vim which tar git telnet \
 && yum install -y curl-devel pcre-devel \
 || yum clean all
 

@@ -273,6 +273,7 @@ DEPENDENCIES
   rails (= 4.2.1)
   redis (~> 3.2.1)
   rspec-rails
+  rubyzip (~> 1.1.7)
   sass-rails (~> 5.0)
   sdoc (~> 0.4.0)
   selenium-webdriver

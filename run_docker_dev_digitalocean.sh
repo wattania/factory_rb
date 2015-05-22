@@ -3,7 +3,7 @@ HOST___RAILS_ROOT=$HOST_PROJ/rails_app
 DOCKER_RAILS_ROOT=/opt/rails_app
 
 docker run --rm -it \
- -h "factory_rb-dev" \
+ -h "factory_rb-dev-DO" \
  --volumes-from factory_rb_data \
  -p 3000:3000 \
  -p 2812:2812 \

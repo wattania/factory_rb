@@ -1,5 +1,13 @@
 module FuncModelUtils
   module FuncModelUtilsClassMethods
+    def ref_dropdown
+      ret = []
+      where(deleted_at: nil).order(:display_name).each{|row| 
+        ret.push({display_name: row.display_name, uuid: row.uuid}) 
+      }
+      ret
+    end
+
     def fn_get_effective_date_stmt a_common_field, a_date = Date.current, opts = {}#datefiel_sym = :effective_date
       me = arel_table
       me_a = me.alias 'a'

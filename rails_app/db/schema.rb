@@ -11,25 +11,34 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150520073316) do
+ActiveRecord::Schema.define(version: 20150522060419) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "file_uploads", force: true do |t|
+  create_table "file_upload_meta", force: :cascade do |t|
     t.string   "file_name",   null: false
     t.string   "file_hash",   null: false
-    t.decimal  "file_size"
     t.string   "uploaded_by"
+    t.datetime "created_at",  null: false
+    t.datetime "updated_at",  null: false
+  end
+
+  add_index "file_upload_meta", ["file_hash"], name: "index_file_upload_meta_on_file_hash", using: :btree
+  add_index "file_upload_meta", ["file_name"], name: "index_file_upload_meta_on_file_name", using: :btree
+
+  create_table "file_uploads", force: :cascade do |t|
+    t.binary   "file_data",  null: false
+    t.string   "file_hash",  null: false
+    t.decimal  "file_size",  null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
 
-  add_index "file_uploads", ["file_hash"], name: "index_file_uploads_on_file_hash", using: :btree
-  add_index "file_uploads", ["file_name"], name: "index_file_uploads_on_file_name", using: :btree
+  add_index "file_uploads", ["file_hash"], name: "index_file_uploads_on_file_hash", unique: true, using: :btree
 
-  create_table "ref_customers", force: true do |t|
-    t.string   "cust_name",                           null: false
+  create_table "ref_customers", force: :cascade do |t|
+    t.string   "display_name",                        null: false
     t.text     "remark"
     t.string   "uuid",         limit: 36,             null: false
     t.integer  "lock_version",            default: 0, null: false
@@ -40,11 +49,11 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at"
   end
 
-  add_index "ref_customers", ["cust_name"], name: "index_ref_customers_on_cust_name", using: :btree
+  add_index "ref_customers", ["display_name"], name: "index_ref_customers_on_display_name", using: :btree
   add_index "ref_customers", ["uuid"], name: "index_ref_customers_on_uuid", unique: true, using: :btree
 
-  create_table "ref_freight_terms", force: true do |t|
-    t.string   "freight_term",                        null: false
+  create_table "ref_freight_terms", force: :cascade do |t|
+    t.string   "display_name",                        null: false
     t.text     "remark"
     t.string   "uuid",         limit: 36,             null: false
     t.integer  "lock_version",            default: 0, null: false
@@ -55,11 +64,11 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at"
   end
 
-  add_index "ref_freight_terms", ["freight_term"], name: "index_ref_freight_terms_on_freight_term", using: :btree
+  add_index "ref_freight_terms", ["display_name"], name: "index_ref_freight_terms_on_display_name", using: :btree
   add_index "ref_freight_terms", ["uuid"], name: "index_ref_freight_terms_on_uuid", unique: true, using: :btree
 
-  create_table "ref_models", force: true do |t|
-    t.string   "model_name",                          null: false
+  create_table "ref_models", force: :cascade do |t|
+    t.string   "display_name",                        null: false
     t.text     "remark"
     t.string   "uuid",         limit: 36,             null: false
     t.integer  "lock_version",            default: 0, null: false
@@ -70,11 +79,11 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at"
   end
 
-  add_index "ref_models", ["model_name"], name: "index_ref_models_on_model_name", using: :btree
+  add_index "ref_models", ["display_name"], name: "index_ref_models_on_display_name", using: :btree
   add_index "ref_models", ["uuid"], name: "index_ref_models_on_uuid", unique: true, using: :btree
 
-  create_table "ref_part_names", force: true do |t|
-    t.string   "part_name",                           null: false
+  create_table "ref_part_names", force: :cascade do |t|
+    t.string   "display_name",                        null: false
     t.text     "remark"
     t.string   "uuid",         limit: 36,             null: false
     t.integer  "lock_version",            default: 0, null: false
@@ -85,11 +94,11 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at"
   end
 
-  add_index "ref_part_names", ["part_name"], name: "index_ref_part_names_on_part_name", using: :btree
+  add_index "ref_part_names", ["display_name"], name: "index_ref_part_names_on_display_name", using: :btree
   add_index "ref_part_names", ["uuid"], name: "index_ref_part_names_on_uuid", unique: true, using: :btree
 
-  create_table "ref_unit_prices", force: true do |t|
-    t.string   "unit_name",                           null: false
+  create_table "ref_unit_prices", force: :cascade do |t|
+    t.string   "display_name",                        null: false
     t.text     "remark"
     t.string   "uuid",         limit: 36,             null: false
     t.integer  "lock_version",            default: 0, null: false
@@ -100,10 +109,10 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at"
   end
 
-  add_index "ref_unit_prices", ["unit_name"], name: "index_ref_unit_prices_on_unit_name", using: :btree
+  add_index "ref_unit_prices", ["display_name"], name: "index_ref_unit_prices_on_display_name", using: :btree
   add_index "ref_unit_prices", ["uuid"], name: "index_ref_unit_prices_on_uuid", unique: true, using: :btree
 
-  create_table "sys_config_by_dates", force: true do |t|
+  create_table "sys_config_by_dates", force: :cascade do |t|
     t.date     "effective_date",                                      null: false
     t.string   "config_key",                                          null: false
     t.decimal  "numeric_value",  precision: 20, scale: 6
@@ -120,7 +129,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "sys_config_by_dates", ["updated_by"], name: "index_sys_config_by_dates_on_updated_by", using: :btree
   add_index "sys_config_by_dates", ["uuid"], name: "index_sys_config_by_dates_on_uuid", unique: true, using: :btree
 
-  create_table "sys_configs", force: true do |t|
+  create_table "sys_configs", force: :cascade do |t|
     t.string   "config_key",                                         null: false
     t.decimal  "numeric_value", precision: 20, scale: 6
     t.text     "string_value"
@@ -135,13 +144,13 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "sys_configs", ["created_by"], name: "index_sys_configs_on_created_by", using: :btree
   add_index "sys_configs", ["updated_by"], name: "index_sys_configs_on_updated_by", using: :btree
 
-  create_table "sys_dummies", force: true do |t|
+  create_table "sys_dummies", force: :cascade do |t|
     t.string   "dummy"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
   end
 
-  create_table "sys_seqs", force: true do |t|
+  create_table "sys_seqs", force: :cascade do |t|
     t.string   "seq_type",    null: false
     t.date     "seq_date",    null: false
     t.integer  "last_number"
@@ -149,7 +158,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
     t.datetime "updated_at",  null: false
   end
 
-  create_table "tb_quotation_approve_files", force: true do |t|
+  create_table "tb_quotation_approve_files", force: :cascade do |t|
     t.string   "tb_quotation_uuid", null: false
     t.string   "file_hash",         null: false
     t.string   "file_name",         null: false
@@ -164,7 +173,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "tb_quotation_approve_files", ["file_name"], name: "index_tb_quotation_approve_files_on_file_name", using: :btree
   add_index "tb_quotation_approve_files", ["updated_by"], name: "index_tb_quotation_approve_files_on_updated_by", using: :btree
 
-  create_table "tb_quotation_calculation_files", force: true do |t|
+  create_table "tb_quotation_calculation_files", force: :cascade do |t|
     t.string   "tb_quotation_uuid", null: false
     t.string   "file_hash",         null: false
     t.string   "file_name",         null: false
@@ -179,7 +188,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "tb_quotation_calculation_files", ["file_name"], name: "index_tb_quotation_calculation_files_on_file_name", using: :btree
   add_index "tb_quotation_calculation_files", ["updated_by"], name: "index_tb_quotation_calculation_files_on_updated_by", using: :btree
 
-  create_table "tb_quotation_items", force: true do |t|
+  create_table "tb_quotation_items", force: :cascade do |t|
     t.string   "quotation_uuid",                                          null: false
     t.string   "item_code"
     t.string   "ref_model_uuid",                                          null: false
@@ -206,7 +215,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "tb_quotation_items", ["ref_unit_price_ref"], name: "index_tb_quotation_items_on_ref_unit_price_ref", using: :btree
   add_index "tb_quotation_items", ["updated_by"], name: "index_tb_quotation_items_on_updated_by", using: :btree
 
-  create_table "tb_quotations", force: true do |t|
+  create_table "tb_quotations", force: :cascade do |t|
     t.string   "uuid",                  limit: 36,                                      null: false
     t.string   "quotation_no"
     t.string   "ref_customer_uuid",     limit: 36,                                      null: false
@@ -227,7 +236,7 @@ ActiveRecord::Schema.define(version: 20150520073316) do
   add_index "tb_quotations", ["updated_by"], name: "index_tb_quotations_on_updated_by", using: :btree
   add_index "tb_quotations", ["uuid"], name: "index_tb_quotations_on_uuid", unique: true, using: :btree
 
-  create_table "users", force: true do |t|
+  create_table "users", force: :cascade do |t|
     t.string   "email",                             default: "",    null: false
     t.string   "encrypted_password",                default: "",    null: false
     t.string   "reset_password_token"

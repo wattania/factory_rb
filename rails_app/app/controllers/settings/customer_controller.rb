@@ -4,11 +4,11 @@ class Settings::CustomerController < ResourceHelperController
   end
 
   def projects
-    rf = RefCustomer.arel_table
+    rf = model.arel_table
     {
       "record_id"     => rf[:id],
       "lock_version"  => rf[:lock_version],
-      "cust_name"     => rf[:cust_name],
+      "display_name" => rf[:display_name],
       "remark"        => rf[:remark]
     }
   end
@@ -16,9 +16,9 @@ class Settings::CustomerController < ResourceHelperController
   def index_list result
     rf = model.arel_table
 
-    stmt = rf.project(project_stmt projects).where(rf[:deleted_at].eq nil).order(rf[:cust_name])
+    stmt = rf.project(project_stmt projects).where(rf[:deleted_at].eq nil).order(rf[:display_name])
 
-    stmt.where(rf[:cust_name].matches "%#{params[:cust_name]}%") unless params[:cust_name].blank?
+    stmt.where(rf[:display_name].matches "%#{params[:display_name]}%") unless params[:display_name].blank?
     stmt.where(rf[:remark].matches "%#{params[:remark]}%") unless params[:remark].blank?
 
     result[:rows] = result_rows stmt, projects
