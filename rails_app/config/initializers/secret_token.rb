@@ -9,4 +9,4 @@
 
 # Make sure your secret_key_base is kept private
 # if you're sharing your code publicly.
-Jfactory::Application.config.secret_key_base = '38ff95296db0253c7f9188cc7efd1ee8434cea422ccf382bff030e58bd6f539ce4064676f8928e0f6f23c259b15086fc9f0fd065fe281843d25682479f8cc507'
+RailsApp::Application.config.secret_key_base = '38ff95296db0253c7f9188cc7efd1ee8434cea422ccf382bff030e58bd6f539ce4064676f8928e0f6f23c259b15086fc9f0fd065fe281843d25682479f8cc507'

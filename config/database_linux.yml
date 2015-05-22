@@ -1,0 +1,21 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  host: <%= ENV['DB_HOST'] %>
+  # For details on connection pooling, see rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: 5
+
+development:
+  <<: *default
+  database: factory_rb_development
+
+test:
+  <<: *default
+  database: factory_rb_test
+
+production:
+  <<: *default
+  database: factory_rb_production
+  username: factory_rb
+  password: <%= ENV['RAILS_APP_DATABASE_PASSWORD'] %>

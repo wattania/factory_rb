@@ -1,7 +1,7 @@
 class CreateRefCustomers < ActiveRecord::Migration
   def change
     create_table :ref_customers do |t|
-      t.string  :cust_name, null: false
+      t.string  :display_name, null: false
       t.text    :remark
       t.string  :uuid, null: false, limit: 36
 
@@ -13,7 +13,7 @@ class CreateRefCustomers < ActiveRecord::Migration
       t.timestamps
     end
 
-    add_index :ref_customers, :cust_name
+    add_index :ref_customers, :display_name
     add_index :ref_customers, :uuid, unique: true
 
   end

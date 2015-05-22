@@ -1,7 +1,7 @@
 class CreateRefUnitPrices < ActiveRecord::Migration
   def change
     create_table :ref_unit_prices do |t|
-      t.string  :unit_name, null: false
+      t.string  :display_name, null: false
       t.text    :remark
       t.string  :uuid, null: false, limit: 36
 
@@ -13,7 +13,7 @@ class CreateRefUnitPrices < ActiveRecord::Migration
       t.timestamps
     end
 
-    add_index :ref_unit_prices, :unit_name
+    add_index :ref_unit_prices, :display_name
     add_index :ref_unit_prices, :uuid, unique: true
   end
 end

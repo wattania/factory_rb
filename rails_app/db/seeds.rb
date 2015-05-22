@@ -21,40 +21,50 @@ if User.select("1").where(user_name: 'admin').first.blank?
   admin.save!
 end
 ########################################################################################################################
-def init_ref model, field, words
+def init_ref words
   words.each{|word|
     cond = {}
-    cond[field] = word
-
-    if model.select("1").where(cond).where(deleted_at: nil).first.blank?
-      n = model.new 
-      n[field] = word
-      n.created_by = 'rake db:seed'
-      n.updated_by = 'rake db:seed'
-      n.save!
+    cond[:display_name] = word
+    if block_given?
+      m = yield
+      if m.class.select("1").where(cond).where(deleted_at: nil).first.blank?
+      
+        n = m.class.new
+        n.display_name = word
+        n.created_by = 'rake db:seed'
+        n.updated_by = 'rake db:seed'
+        n.save!
+      
+      end
     end
   }
 end
 ########################################################################################################################
 # customer
-init_ref RefCustomer, :cust_name, [
+init_ref [
   'Katolec (Vietnam)', 'KSN', 'KTN', 'NBS', 'NC', 
   'NIC', 'NIDEC', 'NLC', 'NMB-C', 'NMB-Thai', 'NOBLE (Eletronic)', 
   'Noble Trading Bangkok', 'RHYTHM', 'SIIX (Bangkok)'
-] 
+] do
+  RefCustomer.new
+end
 ########################################################################################################################
 # customer
-init_ref RefFreightTerm, :freight_term, [
+init_ref [
   'C.I.F.HONGKONG', 'C.I.F.YANGON', 'C.I.F.DALIAN', 'C.I.F.SAVANNAKHET', 'C.I.F.TOKYO', 
   'F.O.B.BANGKOK', 'F.O.B.AYUTTHAYA', 'D.A.T.WUXI', 'C.I.F.HA-NOI', 'C.I.F.AYUTTHAYA', 'C.I.F.SHANGHAI', 
   'C.I.F.SENDAI', 'C.I.P.TOKYO', 'F.C.A.BANGKOK'
-]
+] do
+  RefFreightTerm.new
+end
 #######################################################################################################################
-init_ref RefUnitPrice, :unit_name, [
+init_ref [
   'THB', 'USD', 'JPY'
-]
+] do
+  RefUnitPrice.new
+end
 #######################################################################################################################
-init_ref RefModel, :model_name, ['Q1410',
+init_ref ['Q1410',
 'Q1110',
 'R1420',
 'AD85',
@@ -177,4 +187,6 @@ init_ref RefModel, :model_name, ['Q1410',
 'V910',
 'V920',
 'R1330',
-'R14110']
+'R14110'] do
+  RefModel.new
+end
