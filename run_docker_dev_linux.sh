@@ -10,7 +10,6 @@ docker run --rm -it \
 -e "DB_HOST=$DB_HOST" \
 -e "DB_USER=$DB_USER" \
 -p 3000:3000 \
--v /etc/localtime:/etc/localtime:ro \
 -v $HOST___RAILS_ROOT:$DOCKER_RAILS_ROOT \
 docker.io/wattania/factory_rb:latest \
 /bin/bash

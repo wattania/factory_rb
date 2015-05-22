@@ -1,0 +1,3 @@
+web:
+  volumes:
+   - rails_app:/opt/rails_app

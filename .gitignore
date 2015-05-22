@@ -70,3 +70,4 @@ rails_app/tmp
 rails_app/tmp/**/*
 
 *.swp
+.vagrant
