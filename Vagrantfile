@@ -12,7 +12,8 @@ VAGRANT_FOLDER_NAME = File.basename(VAGRANT_ROOT)
 DEFAULT_FOLDERS_TO_SYNC = [{:src => VAGRANT_ROOT, :dest => VAGRANT_ROOT}]  
 
 # Set default provider
-ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
+#ENV['VAGRANT_DEFAULT_PROVIDER'] = 'virtualbox'
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'parallels'
 
 # Parse .gitignore style files and return the entries within
 def parse_ignore_file(file)
@@ -54,9 +55,9 @@ end
 Vagrant.require_version ">= 1.7.2"
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.define "boot2docker"
-
-  config.vm.box = "blinkreaction/boot2docker"
+  config.vm.define "boot2docker_parellel"
+  #config.vm.box = "blinkreaction/boot2docker"
+  config.vm.box = "parallels/boot2docker"
   config.vm.box_version = "1.6.0"
   config.vm.box_check_update = false
 
@@ -83,7 +84,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.gatling.latency = 0.5
 
   config.ssh.insert_key = false
-
+=begin
   config.vm.provider "virtualbox" do |v|
     v.gui = false
     v.name = VAGRANT_FOLDER_NAME + "_boot2docker"
@@ -93,6 +94,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
     v.customize ["modifyvm", :id, "--natdnsproxy1", "on"]    
     v.customize ["modifyvm", :id, "--nictype1", "virtio"]
+  end
+=end
+  config.vm.provider "parallel" do |v|
+    v.name = VAGRANT_FOLDER_NAME + "_boot2docker_parellel"
+    v.update_guest_tools = true
+    v.memory = 4096
+    v.cpus = 1
+    v.optimize_power_consumption = false
   end
 
   config.vm.network "forwarded_port", guest: 3000, host: 3003
