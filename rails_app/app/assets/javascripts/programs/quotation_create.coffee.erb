@@ -25,7 +25,7 @@ Ext.define 'QuotationCreate',
           fields: ['uuid', 'cust_name']
           data: init.customers
         queryMode: 'local'
-        displayField: 'cust_name'
+        displayField: 'display_name'
         valueField: 'uuid'
       ,
         type: 'text'
@@ -47,7 +47,7 @@ Ext.define 'QuotationCreate',
           fields: ['uuid', 'freight_term']
           data: init.freight_terms
         queryMode: 'local'
-        displayField: 'freight_term'
+        displayField: 'display_name'
         valueField: 'uuid'
       ,
         type: 'number'
@@ -150,8 +150,8 @@ Ext.define 'QuotationCreate',
             data: init.models
           forceSelection: true
           queryMode: 'local'
-          displayField: 'model_name'
-          valueField: 'model_name'
+          displayField: 'display_name'
+          valueField: 'display_name'
       ,
         text: 'Sub Code'
         width: 120
@@ -193,8 +193,8 @@ Ext.define 'QuotationCreate',
             data: init.unit_prices
           forceSelection: true
           queryMode: 'local'
-          displayField: 'unit_name'
-          valueField: 'unit_name'
+          displayField: 'display_name'
+          valueField: 'display_name'
       ,
         text: 'PO Reference'
         width: 120
