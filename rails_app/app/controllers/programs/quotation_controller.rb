@@ -8,8 +8,12 @@ class Programs::QuotationController < ResourceHelperController
   end
 
   def update_process_file result
-    file_path = FileUpload.get_path_by_hash params[:id]
-    TbQuotationItem.validate_xml file_path.to_s
 
+    row = FileUpload.where(file_hash: params[:id]).first
+    if row.blank?
+      result[:error] = "File not found!"
+    else
+      TbQuotationItem.validate_xml row
+    end
   end
 end

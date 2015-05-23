@@ -108,10 +108,11 @@ Ext.define 'QuotationCreate',
         items: [
           xtype: 'upload5'
           text: text_fa_icon 'upload', ''
-          callback: (err, data)->
+          callback: (err, hash)->
             return if err
+            
             me.grid.setLoading true
-            me.rest_client.update data.file_hash, "process_file", {},
+            me.rest_client.update hash, "process_file", {},
               ()->
                 me.grid.setLoading false
             ,

@@ -4,6 +4,7 @@ class CreateFileUploads < ActiveRecord::Migration
       t.binary  :file_data, null: false
       t.string  :file_hash, null: false
       t.decimal :file_size, null: false
+      t.string  :content_type
 
       t.timestamps
     end
