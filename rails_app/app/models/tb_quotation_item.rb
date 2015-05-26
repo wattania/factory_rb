@@ -36,7 +36,22 @@ class TbQuotationItem < ActiveRecord::Base
 
   end
 
-  def self.validate_xml file_path
+  def self.validate_xml file_upload, tmp_file
+    puts "-- validate_xml --"
+    
+    tmp_file.write file_upload.get_file_data
+    tmp_file.rewind
+
+    xlsx = Roo::Excelx.new tmp_file.path
+    sheet = xlsx.sheet(0)
+    puts "-s-"
+    p xlsx.info
+    xlsx.each_row do |row|
+      p row
+    end
+  end
+
+  def self.validate_xml_java file_path
     file = Java::JavaIo::File.new file_path
     fis = Java::JavaIo::FileInputStream.new file 
     workbook = XSSFWorkbook.new fis
