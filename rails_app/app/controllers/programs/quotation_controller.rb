@@ -27,7 +27,9 @@ class Programs::QuotationController < ResourceHelperController
       "customer_code" => it[:customer_code],
       "unit_price"    => ut[:display_name],
       "part_name"     => pt[:display_name],
-      "model"         => md[:display_name]
+      "model"         => md[:display_name],
+      "total_approve_file"    => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationApproveFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
+      "total_calculate_file"  => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationCalculationFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
     }
 
     stmt = qa.project(project_stmt projects)

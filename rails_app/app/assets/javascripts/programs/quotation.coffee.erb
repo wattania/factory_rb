@@ -268,8 +268,14 @@ Ext.define 'QuotationView',
         dataIndex: 'remark'
       ,
         text: 'App.File'
+        dataIndex: 'total_approve_file'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
       ,
         text: 'Calc.File'
+        dataIndex: 'total_calculate_file'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
       ]
 
     @filter_form = Ext.create 'Ext.form.Panel',
