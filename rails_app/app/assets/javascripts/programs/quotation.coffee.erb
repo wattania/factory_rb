@@ -1,5 +1,6 @@
 //= require programs/quotation_search
 //= require programs/quotation_create
+//= require filter_panel
 
 Ext.define 'QuotationView',
   extend: 'Ext.panel.Panel'
@@ -24,42 +25,6 @@ Ext.define 'QuotationView',
     Ext.create "QuotationCreate",
       init: init
       rest_client: me.rest_client
-
-  add_filter: (name, type, caption)->
-    me = @
-    cmp = Ext.create 'Ext.panel.Panel',
-      xtype: 'panel'
-      layout: type: 'hbox', align: 'stretch'
-      height: 70
-      border: false
-      items: [
-        layout: type: 'vbox'#, align: 'stretch'
-        border: false
-        bodyPadding: '5 0 0 2'
-        items: [
-          xtype: 'button'
-          text: text_fa_icon 'times', ''
-          cls: 'filter_remove_btn'
-          cmp: cmp
-          handler: (btn)->
-            me.filter_form.remove cmp
-        ,
-          flex: 1
-          border: false 
-        ]
-      ,
-        border: false
-        layout: type: 'vbox' 
-        margin: '5 0 0 5'
-        items: [
-          xtype: 'x_date_range'
-          width: 200
-          name: name
-          captions: caption
-        ]
-      ]
-
-    @filter_form.add cmp
 
   save_quotation: (form, callback)->
     me = @
@@ -150,6 +115,24 @@ Ext.define 'QuotationView',
   initComponent: ->
     me = @ 
 
+    filter_panel = Ext.create 'FilterPanel',
+      region: 'east'
+      listeners:
+        search: (c, values)->
+          me.grid.getStore().loadPage 1
+           
+      cmps: [
+        text: 'Quotation No.'
+        cmp:
+          xtype: 'x_date_range'
+          name: 'quotation'
+      ,
+        text: 'EEE'
+        cmp:
+          xtype: 'x_text'
+          name: 'eee'
+      ]
+
     store = Ext.create 'Ext.data.Store',
       fields: [
         'record_id', 'uuid', 'quotation_no', 
@@ -166,6 +149,15 @@ Ext.define 'QuotationView',
         'model'
       ]
       autoLoad: true
+      listeners:
+        beforeload: (store)->
+          values = filter_panel.get_filter_values()
+
+          Ext.apply store.getProxy().extraParams = {method: 'list'}
+          Ext.apply store.getProxy().extraParams, values
+
+          true
+
       proxy:
         type: 'ajax'
         url: me.rest_client.url
@@ -290,39 +282,7 @@ Ext.define 'QuotationView',
       items: [
         @grid
       ,
-        xtype: 'panel'
-        region: 'east'
-        title: 'Filter'
-        dockedItems: [
-          xtype: 'toolbar'
-          dock: 'top'
-          items: [
-            xtype: 'button'
-            text: text_fa_icon 'plus', 'Add'
-            menu: [
-              text: 'Quotation No.'
-              handler: ()->
-                me.add_filter "xx", "", ["Quotation No."]
-            ]
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'eraser', 'Clear', 'fa-flip'
-            handler: ()->
-              me.filter_form.removeAll()
-          ,
-            '->'
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'search', 'Search'
-          ]
-        ]
-        width: 400
-        collapsed: true
-        collapsible: true
-        layout: 'fit'
-        items: [
-          @filter_form
-        ]
+        filter_panel
       ]
     ]
     @callParent arguments
