@@ -60,7 +60,37 @@ Ext.define 'QuotationView',
       ]
 
     @filter_form.add cmp
-      
+
+  save_quotation: (form, callback)->
+    me = @
+    values = form.getValues()
+    unless Ext.isEmpty values.id
+      me.setLoading true
+      me.rest_client.update values.id, 'quotation', {},
+        (res)->
+          me.setLoading false
+          callback res.success
+      ,
+        ()->
+          me.setLoading false
+          callback false
+      ,
+        jsonData:
+          data: values
+    else
+      me.setLoading true
+      me.rest_client.create 'quotation', {},
+        (res)->
+          me.setLoading false
+          callback res.success
+      ,
+        ()->
+          me.setLoading false
+          callback false
+      ,
+        jsonData:
+          data: values
+
   show_form_page: (title, name, callback)->
     me = @
 
@@ -83,6 +113,21 @@ Ext.define 'QuotationView',
               items: [
                 xtype: 'button'
                 text: text_fa_icon 'save', 'Save'
+                handler: (btn)->
+                  return unless form.isValid()
+                  Ext.Msg.show
+                    title:'Save?'
+                    message: "Save Quotation"
+                    buttons: Ext.Msg.YESNO
+                    icon: Ext.Msg.QUESTION
+                    fn: (ans)->
+                      if ans == 'yes'
+                        me.save_quotation form, (success)->
+                          if success
+                            main_page.restore_title()
+                            me.getLayout().setActiveItem 0
+                            me.remove n
+
               ,
                 xtype: 'button'
                 text: text_fa_icon 'arrow-left', 'Back'
@@ -106,7 +151,41 @@ Ext.define 'QuotationView',
     me = @ 
 
     store = Ext.create 'Ext.data.Store',
-      fields: ['a', 'b']
+      fields: [
+        'record_id', 'uuid', 'quotation_no', 
+        {type: 'date', name: 'issue_date', dateFormat: "Y-m-d"}, 
+        'exchange_rate', 'created_by', 'customer', 'freight_term',
+        'item_code', 'sub_code', 
+        {type: 'float', name: 'part_price'},
+        'po_reference',
+        'remark',
+        {type: 'float', name: 'package_price'},
+        'customer_code',
+        'unit_price',
+        'part_name',
+        'model'
+      ]
+      autoLoad: true
+      proxy:
+        type: 'ajax'
+        url: me.rest_client.url
+        extraParams:
+          method: 'list'
+        reader:
+          type: 'json'
+          rootProperty: 'rows'
+          totalProperty: 'total'
+        listeners:
+          exception: (request, result)->
+            try
+              response = Ext.JSON.decode result.responseText 
+              unless response.success
+                Ext.create('ErrorBox',
+                  message: response.message
+                  backtrace: response.backtrace
+                  ).show()
+            catch e
+              Ext.Msg.alert '', result.responseText
 
     @grid = Ext.create 'Ext.grid.Panel',
       region: 'center'
@@ -139,34 +218,54 @@ Ext.define 'QuotationView',
         dataIndex: 'quotation_no'
       ,
         text: 'Customer'
+        dataIndex: 'customer'
       ,
         text: 'Create Person'
+        dataIndex: 'created_by'
       ,
         text: 'Issue Date'
+        dataIndex: 'issue_date'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
       ,
         text: 'Freight Term'
+        dataIndex: 'freight_term'
       ,
         text: 'Exch.Rate'
+        dataIndex: 'exchange_rate'
+        align: 'right'
       ,
         text: 'Item Code'
+        dataIndex: 'item_code'
       ,
         text: 'Model'
+        dataIndex: 'model'
       ,
         text: 'Sub Code'
+        dataIndex: 'sub_code'
       ,
         text: 'Customer code'
+        dataIndex: 'customer_code'
       ,
         text: 'Part Name'
+        dataIndex: 'part_name'
       ,
         text: 'Package Price'
+        dataIndex: 'package_price'
+        align: 'right'
       ,
         text: 'Total Price'
+        dataIndex: 'total_price'
+        align: 'right'
       ,
         text: 'Unit Price'
+        dataIndex: 'unit_price'
+        align: 'right'
       ,
         text: 'PO Reference'
+        dataIndex: 'po_reference'
       ,
         text: 'Remark'
+        dataIndex: 'remark'
       ,
         text: 'App.File'
       ,
@@ -186,7 +285,7 @@ Ext.define 'QuotationView',
         @grid
       ,
         xtype: 'panel'
-        region: 'west'
+        region: 'east'
         title: 'Filter'
         dockedItems: [
           xtype: 'toolbar'

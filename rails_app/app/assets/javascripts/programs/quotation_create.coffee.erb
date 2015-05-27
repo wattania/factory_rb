@@ -9,6 +9,7 @@ Ext.define 'QuotationCreate',
     xtype: 'grid'
     store: Ext.create 'Ext.data.Store',
       fields: [
+        type: 'string', name: 'record_id'
         type: 'string', name: 'filename'
         type: 'string', name: 'uploaded'
       ]
@@ -17,10 +18,10 @@ Ext.define 'QuotationCreate',
       width: 60
       items: [
         icon: ProgHelper.img_url "document-download1.gif"
-        tooltip: 'Delete'
+        tooltip: 'Download'
         handler: (grid, rowIndex, colIndex)->
           rec = grid.getStore().getAt rowIndex
-          grid.getStore().remove rec
+          
       ,
         icon: ProgHelper.img_url "space.png"
       ,
@@ -28,7 +29,25 @@ Ext.define 'QuotationCreate',
         tooltip: 'Delete'
         handler: (grid, rowIndex, colIndex)->
           rec = grid.getStore().getAt rowIndex
-          grid.getStore().remove rec
+
+          Ext.Msg.show
+            title:'Delete File?'
+            message: rec.get 'filename'
+            buttons: Ext.Msg.YESNO
+            icon: Ext.Msg.QUESTION
+            fn: (btn)->
+              if btn == 'yes'
+                me.rest_client.destroy rec.get('record_id'), name, {},
+                  (res)->
+                    if res.success
+                      me.rest_client.show init.uuid, name, {},
+                        (res)->
+                          if res.success
+                            grid = me.file_upload_panel.down "grid[name=#{name}]"
+                            grid.getStore().removeAll()
+                            grid.getStore().add res.rows
+                      ,
+                        ()->
       ]
     ,
       text: 'Filename'
@@ -84,15 +103,26 @@ Ext.define 'QuotationCreate',
       items: [
         xtype: 'hidden'
         value: init.uuid
+        name: 'uuid'
+      ,
+        xtype: 'hidden'
+        name: 'id'
+        value: init.id
+      ,
+        xtype: 'hidden'
+        name: 'lock_version'
+        value: init.lock_version
       ,
         type: 'text'
         captions: ['Quotation No.']
         pos: [1, 1]
         name: 'quotation_no'
+        is_require: true
       ,
         xtype: 'combo'
         pos: [1, 2]
         fieldLabel: 'Customer'
+        name: 'customer'
         forceSelection: true
         labelAlign: 'top'
         store: Ext.create 'Ext.data.Store',
@@ -111,9 +141,11 @@ Ext.define 'QuotationCreate',
         type: 'date'
         captions: ['Issue Date']
         pos: [1, 4]
+        name: 'issue_date'
       ,
         xtype: 'combo'
         pos: [1, 5]
+        name: 'freight_term'
         fieldLabel: 'Freight Term'
         forceSelection: true
         labelAlign: 'top'
@@ -126,6 +158,7 @@ Ext.define 'QuotationCreate',
       ,
         type: 'number'
         format: '0,000.00'
+        name: 'exchange_rate'
         captions: ['Exchange Rate']
         pos: [1, 3]
       ]
@@ -232,7 +265,7 @@ Ext.define 'QuotationCreate',
         xtype: 'rownumberer'
         width: 45
       ,
-        text: 'XLS Line'
+        text: text_fa_icon 'file-excel-o', 'Line'
         width: 55
         dataIndex: 'row_no'
         align: 'right'
