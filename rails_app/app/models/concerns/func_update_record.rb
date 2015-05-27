@@ -111,4 +111,22 @@ module FuncUpdateRecord
     end
   end
 
+  def set_value_from_xml name, value
+    col_config = self.class::XLSX_CONFIG[:columns].select{|e| e[:name] == name }.first
+
+    if col_config
+      if col_config[:ref_value]
+        col_config[:ref_value].constantize.where(display_name: value).limit(1).each{|row| self[name] = row.uuid }
+        send "#{name}_val=", value
+        
+      else
+        self[name] = value
+
+      end
+    else
+      self[name] = value
+
+    end
+  end
+
 end

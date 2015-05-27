@@ -8,123 +8,58 @@ if defined?(JRUBY_VERSION)
 end
 
 class TbQuotationItem < ActiveRecord::Base
- 
-  XLSX_COLUMNS = [
-    {name: :item_code,           text: 'Item Code'},
-    {name: :ref_model_uuid,      text: 'XXModel'},
-    {name: :sub_code,            text: 'Sub Code'},
-    {name: :customer_code,       text: 'Customer Code'},
-    {name: :part_name,           text: 'Part Name'},
-    {name: :part_price,          text: 'Part Price'},
-    {name: :package_price,       text: 'Package Price'},
-    {name: :ref_unit_price_ref,  text: 'XX Unit Price'},
-    {name: :po_reference,        text: 'PO reference'},
-    {name: :remark,              text: 'Remark'}
-  ]
- 
-  validates :ref_model_uuid, presence: true 
-  #validates :item_code, :ref_model_uuid, :sub_code, :customer_code, :part_name, :part_price, :package_price, :ref_unit_price_ref, presence: true 
+  #include ActiveModel::AttributeMethods
+  #attribute_method_suffix '_ref_val'
+  XLSX_CONFIG = {
+    data_row_index: 1,
+    columns: [
+      {name: :item_code,           text: 'Item Code',       cell_type: :string, validates: [:no_blank] },
+      {name: :ref_model_uuid,      text: 'Model',           cell_type: :string, validates: [:no_blank], ref_value: "RefModel" },
+      {name: :sub_code,            text: 'Sub Code',        cell_type: :string, validates: [:no_blank] },
+      {name: :customer_code,       text: 'Customer Code',   cell_type: :string, validates: [:no_blank] },
+      {name: :ref_part_name_uuid,  text: 'Part Name',       cell_type: :string, validates: [:no_blank], ref_value: "RefPartName" },
+      {name: :part_price,          text: 'Part Price',      cell_type: :float,  validates: [:no_blank]},
+      {name: :package_price,       text: 'Package Price',   cell_type: :float,  validates: [:no_blank] },
+      {name: :ref_unit_price_uuid, text: 'Unit Price',      cell_type: :string, validates: [:no_blank], ref_value: "RefUnitPrice" },
+      {name: :po_reference,        text: 'PO reference',    cell_type: :string  },
+      {name: :remark,              text: 'Remark',          cell_type: :string  }
+    ]
+  }
 
-  def self.human_attribute_name a_attr
-    ret = super
-    XLSX_COLUMNS.each{|conf| ret = conf[:text] if conf[:name] == a_attr }
-    puts "--a--->#{a_attr}->#{ret}"
+  include FuncValidateHelper
+  include FuncUpdateRecord
+  
+  attr_accessor :ref_model_uuid_val, :ref_unit_price_uuid_val, :ref_part_name_uuid_val
+  #validates :ref_model_uuid, presence: true 
+  validates :file_hash, presence: true 
+
+  #validate :v_ref_model_uuid
+  #validate :v_ref_unit_price_ref
+  validate :v_xls
+
+  def v_xls
+    v_helper_xls XLSX_CONFIG
+  end
+
+  def self.validate_xml file_upload, quotation_uuid, created_by, updated_by
+
+    t = Tempfile.new ["#{Time.now.usec}", '.xlsx']
+    t.binmode
+
+    TbQuotationItem.where(quotation_uuid: quotation_uuid).delete_all
+    ret = TbQuotationItem.v_validate_xml file_upload, t, XLSX_CONFIG do |item, row_data|
+      item.quotation_uuid = quotation_uuid
+      item.created_by = created_by
+      item.updated_by = updated_by
+    end
+
+    t.close
+    t.unlink
+    
     ret
   end
 
   def self.validate_file_name file_name
 
-  end
-
-  def self.validate_xml file_upload, tmp_file
-    puts "-- validate_xml --"
-    
-    tmp_file.write file_upload.get_file_data
-    tmp_file.rewind
-
-    xlsx = Roo::Excelx.new tmp_file.path
-    sheet = xlsx.sheet(0)
-    puts "-s-"
-    p xlsx.info
-    xlsx.each_row do |row|
-      p row
-    end
-  end
-
-  def self.validate_xml_java file_path
-    file = Java::JavaIo::File.new file_path
-    fis = Java::JavaIo::FileInputStream.new file 
-    workbook = XSSFWorkbook.new fis
-    if file.is_file and file.exists
-      puts "openworkbook.xlsx file open successfully."
-
-      spreadsheet = workbook.get_sheet_at 0
-      it = spreadsheet.iterator
-
-      row_index = -1
-      while it.has_next
-        row_index += 1
-        row = it.next.to_java XSSFRow
-        next if row_index > 0
-
-        _item = TbQuotationItem.new
-        _item.valid?
-        p _item.errors.messages
-
-        cell_it = row.cellIterator
-
-        col_index = -1
-        while cell_it.has_next
-          col_index += 1
-          
-          cell = cell_it.next
-          col_name = XLSX_COLUMNS[col_index][:name]
-          puts "--col_index -> #{col_index} : name -> #{col_name}"
-          
-          case cell.get_cell_type
-          when Cell::CELL_TYPE_NUMERIC
-            _item.set_value_from_xml col_name, cell.get_numeric_cell_value
-
-          when Cell::CELL_TYPE_STRING
-            _item.set_value_from_xml col_name, cell.get_string_cell_value.strip
-            
-          end
-
-        end
-
-        #unless _item.valid?
-          puts "==="
-        
-        _item.errors.clear
-        _item.valid?
-        
-        p _item.errors.messages
-        #else
-        #  p _item
-        #  puts "-- valid --"
-        #end
-        puts
-        
-      end
-    else
-      puts "Error to open openworkbook.xlsx file."
-    end
-
-    fis.close
-  end
-
-  def set_value_from_xml name, value
-    puts "set_value --> "
-    case name
-    when :ref_model_uuid
-      RefModel.where(model_name: value).limit(1).each{|row| self[name] = row.uuid }
-
-    when :ref_unit_price_ref
-      RefUnitPrice.where(unit_name: value).limit(1).each{|row| self[name] = row.uuid }
-
-    else
-      self[name] = value
-
-    end
   end
 end

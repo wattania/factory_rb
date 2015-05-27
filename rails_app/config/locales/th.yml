@@ -10,4 +10,6 @@ en:
         tb_quotation_item:
           attributes:
             ref_model_uuid:
-              blank: "cannot be empty %{value}DD"
+              blank: "ไม่พบข้อมูล Model {{model}}"
+            file_hash: 
+              blank: "file hash can't be blank"

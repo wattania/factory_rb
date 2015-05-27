@@ -11,6 +11,9 @@ Ext.define 'QuotationCreate',
       row: 2
       col: 6
       items: [
+        xtype: 'hidden'
+        value: init.uuid
+      ,
         type: 'text'
         captions: ['Quotation No.']
         pos: [1, 1]
@@ -97,8 +100,10 @@ Ext.define 'QuotationCreate',
           type: 'string', name: 'item_code'
           type: 'string', name: 'model'
           type: 'string', name: 'sub_code'
+          type: 'string', name: 'part_name'
           type: 'string', name: 'customer_code'
           type: 'string', name: 'unit_price'
+          type: 'float', name: 'package_price'
         ]
       
 
@@ -107,20 +112,56 @@ Ext.define 'QuotationCreate',
         dock: 'top'
         items: [
           xtype: 'upload5'
+          extra_params:
+            quotation_uuid: init.uuid
           text: text_fa_icon 'upload', ''
           callback: (err, hash)->
             return if err
             
             me.grid.setLoading true
             me.rest_client.update hash, "process_file", {},
-              ()->
+              (response)->
                 me.grid.setLoading false
+                if response.success
+                  unless response.valid
+                    Ext.create('Ext.window.Window',
+                      layout: 'fit'
+                      width: 600
+                      height: 400
+                      modal: true
+                      items: 
+                        xtype: 'htmleditor'
+                        name: 'html_logger' 
+                        submitValue: false
+                        border: false
+                        value: response.html
+                        listeners:
+                          render: ()->
+                            @getToolbar().hide()
+                            @setReadOnly true
+                    ).show()
+                  else
+                    me.grid.setLoading true
+                    me.rest_client.index 'item_data', { uuid: init.uuid },
+                      (res)->
+                        console.log res
+                        me.grid.getStore().removeAll()
+                        me.grid.getStore().add res.rows
+                        me.grid.setLoading false
+                    ,
+                      ()->
+                        me.grid.setLoading false
+
             ,
               ()->
                 me.grid.setLoading false
+            ,
+              jsonData:
+                quotation_uuid: init.uuid
         ]
       ]
       columns: [
+        ###
         xtype:'actioncolumn'
         width: 30
         align: 'center'
@@ -131,15 +172,14 @@ Ext.define 'QuotationCreate',
             rec = grid.getStore().getAt rowIndex
             grid.getStore().remove rec
         ]
-      ,
+        ,
+        ###
         xtype: 'rownumberer'
         width: 45
       ,
         text: 'Item Code'
         dataIndex: 'item_code'
         width: 120
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Model'
         dataIndex: 'model'
@@ -157,55 +197,42 @@ Ext.define 'QuotationCreate',
         text: 'Sub Code'
         width: 120
         dataIndex: 'sub_code'
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Customer Code'
         width: 120
         dataIndex: 'customer_code'
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Part Name'
+        dataIndex: 'part_name'
         width: 120
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Part Price'
+        dataIndex: 'part_price'
+        align: 'right'
         width: 120
       ,
         text: 'Package Price'
+        dataIndex: 'package_price'
+        align: 'right'
         width: 120
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Total Price'
+        dataIndex: 'total_price'
+        align: 'right'
         width: 120
-        editor:
-          xtype: 'textfield'
       ,
         text: 'Unit Price'
         dataIndex: 'unit_price'
+        align: 'right'
         width: 120
-        editor:
-          xtype: 'combo'
-          store: Ext.create 'Ext.data.Store',
-            fields: ['uuid', 'unit_name']
-            data: init.unit_prices
-          forceSelection: true
-          queryMode: 'local'
-          displayField: 'display_name'
-          valueField: 'display_name'
       ,
         text: 'PO Reference'
         width: 120
-        editor:
-          xtype: 'textfield'
+        dataIndex: 'po_reference'
       ,
         text: 'Remark'
+        dataIndex: 'remark'
         width: 120
-        editor:
-          xtype: 'textfield'
       ]
 
     @items = [ 

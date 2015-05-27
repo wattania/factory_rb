@@ -91,12 +91,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   when 'virtualbox'
     config.vm.box = "blinkreaction/boot2docker"
     config.vm.box_version = "1.6.0"
-    config.vm.box_check_update = false
+    config.vm.box_check_update = true
 
   when 'parallels'
     config.vm.box = "parallels/boot2docker"
     config.vm.box_version = "1.6.0"
-    config.vm.box_check_update = false
+    config.vm.box_check_update = true
     config.vm.network "private_network", ip: "10.211.55.15"
   else
     raise "unknow provider #{provider}"

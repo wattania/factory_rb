@@ -1,5 +1,5 @@
 # factory_rb
 Test Rails Framework
 
-#User rsync
+#Use rsync
 vagrant gatling-rsync-auto
