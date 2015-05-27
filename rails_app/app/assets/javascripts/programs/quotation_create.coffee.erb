@@ -2,6 +2,77 @@ Ext.define 'QuotationCreate',
   extend: 'Ext.form.Panel'
   border: false
   layout: type: 'vbox', align: 'stretch'
+
+  get_upload_grid: (name, title, init)->
+    me = @
+
+    xtype: 'grid'
+    store: Ext.create 'Ext.data.Store',
+      fields: [
+        type: 'string', name: 'filename'
+        type: 'string', name: 'uploaded'
+      ]
+    columns: [
+      xtype:'actioncolumn'
+      width: 60
+      items: [
+        icon: ProgHelper.img_url "document-download1.gif"
+        tooltip: 'Delete'
+        handler: (grid, rowIndex, colIndex)->
+          rec = grid.getStore().getAt rowIndex
+          grid.getStore().remove rec
+      ,
+        icon: ProgHelper.img_url "space.png"
+      ,
+        icon: ProgHelper.img_url "file_delete_16.png"
+        tooltip: 'Delete'
+        handler: (grid, rowIndex, colIndex)->
+          rec = grid.getStore().getAt rowIndex
+          grid.getStore().remove rec
+      ]
+    ,
+      text: 'Filename'
+      dataIndex: 'filename'
+      flex: 1
+    ,
+      text: 'Uploaded'
+      dataIndex: 'uploaded'
+      width: 150
+
+    ]
+    name: name#'approve_file'
+    title: title#'Upload Approve File'
+    flex: 1
+    dockedItems: [
+      xtype: 'toolbar'
+      dock: 'top'
+      items: [ 
+        xtype: 'upload5'
+        extra_params: uuid: init.uuid
+        text: text_fa_icon 'upload', ''
+        callback: (err, data)->
+          return if err 
+          me.rest_client.update data.hash, "store_#{name}", {},
+            (res)->
+              if res.success
+                me.rest_client.show init.uuid, name, {},
+                  (res)->
+                    if res.success
+                      grid = me.file_upload_panel.down "grid[name=#{name}]"
+                      grid.getStore().removeAll()
+                      grid.getStore().add res.rows
+                ,
+                  ()->
+          ,
+            ()->
+          ,
+            jsonData:
+              uuid: init.uuid
+              filename: data.filename
+
+      ]
+    ]
+
   initComponent: ->
     me = @
 
@@ -65,36 +136,19 @@ Ext.define 'QuotationCreate',
       layout: type: 'hbox', align: 'stretch'
       border: false
       items: [
-        title: 'Approve File'
-        flex: 1
-        dockedItems: [
-          xtype: 'toolbar'
-          dock: 'top'
-          items: [ 
-            xtype: 'button'
-            text: text_fa_icon 'upload', ''
-          ]
-        ]
+        @get_upload_grid 'approve_file', 'Approve File', init
       ,
-        title: 'Calculation File'
-        flex: 1
-        dockedItems: [
-          xtype: 'toolbar'
-          dock: 'top'
-          items: [ 
-            xtype: 'button'
-            text: text_fa_icon 'upload', ''
-          ]
-        ]
+        @get_upload_grid 'calculation_file', 'Calculation File', init
       ]
       
 
     @grid = Ext.create 'Ext.grid.Panel',
       flex: 1
       margin: '0 10 10 10'
-      plugins:
-        ptype: 'cellediting'
-        clicksToEdit: 1
+      title: 'Import Data'
+      #plugins:
+      #  ptype: 'cellediting'
+      #  clicksToEdit: 1
       store: Ext.create 'Ext.data.Store',
         fields: [
           type: 'string', name: 'item_code'
@@ -104,6 +158,7 @@ Ext.define 'QuotationCreate',
           type: 'string', name: 'customer_code'
           type: 'string', name: 'unit_price'
           type: 'float', name: 'package_price'
+          type: 'integer', name: 'row_no'
         ]
       
 
@@ -115,11 +170,11 @@ Ext.define 'QuotationCreate',
           extra_params:
             quotation_uuid: init.uuid
           text: text_fa_icon 'upload', ''
-          callback: (err, hash)->
+          callback: (err, data)->
             return if err
             
             me.grid.setLoading true
-            me.rest_client.update hash, "process_file", {},
+            me.rest_client.update data.hash, "process_file", {},
               (response)->
                 me.grid.setLoading false
                 if response.success
@@ -177,25 +232,21 @@ Ext.define 'QuotationCreate',
         xtype: 'rownumberer'
         width: 45
       ,
+        text: 'XLS Line'
+        width: 55
+        dataIndex: 'row_no'
+        align: 'right'
+      ,
         text: 'Item Code'
         dataIndex: 'item_code'
-        width: 120
+        width: 100
       ,
         text: 'Model'
         dataIndex: 'model'
-        width: 120
-        editor:
-          xtype: 'combo'
-          store: Ext.create 'Ext.data.Store',
-            fields: ['uuid', 'model_name']
-            data: init.models
-          forceSelection: true
-          queryMode: 'local'
-          displayField: 'display_name'
-          valueField: 'display_name'
+        width: 90
       ,
         text: 'Sub Code'
-        width: 120
+        width: 90
         dataIndex: 'sub_code'
       ,
         text: 'Customer Code'
@@ -204,12 +255,13 @@ Ext.define 'QuotationCreate',
       ,
         text: 'Part Name'
         dataIndex: 'part_name'
-        width: 120
+        width: 100
       ,
         text: 'Part Price'
         dataIndex: 'part_price'
         align: 'right'
         width: 120
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Package Price'
         dataIndex: 'package_price'
@@ -223,8 +275,8 @@ Ext.define 'QuotationCreate',
       ,
         text: 'Unit Price'
         dataIndex: 'unit_price'
-        align: 'right'
-        width: 120
+        align: 'center'
+        width: 80
       ,
         text: 'PO Reference'
         width: 120
@@ -232,7 +284,7 @@ Ext.define 'QuotationCreate',
       ,
         text: 'Remark'
         dataIndex: 'remark'
-        width: 120
+        width: 200
       ]
 
     @items = [ 

@@ -4,7 +4,7 @@ class UploadController < ApplicationController
     begin
       m = FileUpload.store(params[:file].tempfile.read, params[:file].content_type)
       FileUploadMetum.file m, params[:file].original_filename, current_user
-      ret = { data: m.file_hash }
+      ret = { data: { hash: m.file_hash, filename: params[:file].original_filename }}
     rescue Exception => e
       ret = { error: { message: e.message, backtrace: e.backtrace } }
     end

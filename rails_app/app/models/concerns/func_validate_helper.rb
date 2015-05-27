@@ -15,14 +15,14 @@ module FuncValidateHelper
     if self[attribute_sym].blank?
       desc = ((xls_columns[:columns] || []).select{|e| e[:name] == attribute_sym}.first || {})[:text]
       attr_text = send("#{attribute_sym}_val")
-      errors[attribute_sym] << "#{desc} '#{attr_text}' ไม่มีในระบบ"
+      errors[attribute_sym] << "<b>#{desc}</b> '#{attr_text}' ไม่มีในระบบ"
     end
   end
 
   def v_helper_xls_presence attribute_sym, xls_columns
     if self[attribute_sym].blank?
       desc = ((xls_columns[:columns] || []).select{|e| e[:name] == attribute_sym}.first || {})[:text]
-      errors[attribute_sym] << "'#{desc}' can't be blank"
+      errors[attribute_sym] << "<b>#{desc}</b> can't be blank"
     end
   end
 
@@ -89,22 +89,36 @@ module FuncValidateHelper
 
         (xls_columns[:columns] || []).each_with_index{|col_config, col_index|
           val = xlsx.row(row)[col_index]
-          cell_type = (xlsx.celltype row_index, col_index) || :string
+           
+          _invalid_type = nil
+          if !col_config[:cell_type].blank? and !val.blank?
+            case col_config[:cell_type]
+            when :string
+              if val.is_a? Float
+                val = val.to_i.to_s if val.to_i == val 
+              end
 
-          unless cell_type.blank?
-            require_cell_type = col_config[:cell_type] || :string
-            unless require_cell_type == cell_type
-              data_valid = false
-              _line = "line_#{row_index + 1}"
-
-              line_error[_line] = [] if line_error[_line].blank?
-              m = "<b>#{col_config[:text]}</b>: Cell Type Invalid! (Data=#{cell_type}, Require=#{require_cell_type})"
-              puts m
-              p val
-              puts
-              line_error[_line].push 
+              if val.is_a? String
+              else
+                _invalid_type = "ตัวเลข"
+              end
+            when :float
+              if val.is_a? String 
+                _invalid_type = "ตัวหนังสือ"
+              else
+              end
             end
           end
+
+          if _invalid_type
+            data_valid = false
+            _line = "line_#{row_index + 1}"
+
+            line_error[_line] = [] if line_error[_line].nil?
+            m = "<b>#{col_config[:text]}</b>: Cell Type Invalid! (Exel=#{_invalid_type}, Require=#{col_config[:cell_type] == :string ? 'ตัวหนังสือ' : 'ตัวเลข'})"
+            line_error[_line].push m
+          end
+
           item.set_value_from_xml col_config[:name], val
         }
 
@@ -114,7 +128,7 @@ module FuncValidateHelper
           data_valid = false
 
           _line = "line_#{row_index + 1}"
-          line_error[_line] = [] if line_error[_line].blank?
+          line_error[_line] = [] if line_error[_line].nil?
           item.errors.messages.each{|attr, msgs|
             if msgs.is_a? Array
               msgs.each{|msg|

@@ -12,7 +12,7 @@ class CreateTbQuotationApproveFiles < ActiveRecord::Migration
       t.timestamps
     end
 
-    add_index :tb_quotation_approve_files, :file_hash, unique: true
+    add_index :tb_quotation_approve_files, :file_hash
     add_index :tb_quotation_approve_files, :file_name
 
     add_index :tb_quotation_approve_files, :created_by

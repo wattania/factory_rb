@@ -48,6 +48,12 @@ init_ref [
 ] do
   RefCustomer.new
 end
+
+init_ref [
+  'Screw', 'Spring', 'Sponge', 'Pen', 'Board', 'Pencil', 'Ruler'
+] do
+  RefPartName.new 
+end
 ########################################################################################################################
 # customer
 init_ref [

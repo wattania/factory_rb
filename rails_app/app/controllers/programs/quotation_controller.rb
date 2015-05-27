@@ -1,4 +1,52 @@
 class Programs::QuotationController < ResourceHelperController
+  def store_file n
+    user = current_user
+    n.tb_quotation_uuid = params[:uuid]
+    n.file_hash = params[:id]
+    n.file_name = params[:filename]
+    n.created_by = user.uuid
+    n.updated_by = user.uuid
+    n.save!
+  end
+
+  def show_file model, result
+    result[:rows] = []
+    model.where(tb_quotation_uuid: params[:id]).order(:file_name).each{|row|
+      result[:rows].push({
+        filename: row.file_name,
+        record_id: row.id,
+        uploaded: row.created_at.strftime('%d/%m/%Y %H:%M:%S')
+        })
+    }
+  end
+
+  def update_store_calculation_file result
+    store_file TbQuotationCalculationFile.new
+  end
+
+  def update_store_approve_file result
+    store_file TbQuotationApproveFile.new
+  end
+
+  def show_calculation_file result
+    show_file TbQuotationCalculationFile, result
+  end
+
+  def show_approve_file result
+    show_file TbQuotationApproveFile, result
+  end
+
+  def update_store_approve_file result
+    user = current_user
+    n = TbQuotationApproveFile.new
+    n.tb_quotation_uuid = params[:uuid]
+    n.file_hash = params[:id]
+    n.file_name = params[:filename]
+    n.created_by = user.uuid
+    n.updated_by = user.uuid
+    n.save!
+  end
+
   def create_form_create result
     result[:data] = {}
     result[:data][:uuid]          = UUID.generate
@@ -30,6 +78,7 @@ class Programs::QuotationController < ResourceHelperController
     ut = RefUnitPrice.arel_table
 
     stmt = it.project(project_stmt({
+      "row_no"        => it[:row_no],
       "record_id"     => it[:id],
       "item_code"     => it[:item_code],
       "sub_code"      => it[:sub_code],
