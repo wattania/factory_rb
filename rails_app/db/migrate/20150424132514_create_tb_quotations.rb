@@ -16,7 +16,7 @@ class CreateTbQuotations < ActiveRecord::Migration
     end
 
     add_index :tb_quotations, :uuid, unique: true
-    add_index :tb_quotations, :quotation_no
+    add_index :tb_quotations, :quotation_no, unique: true
     add_index :tb_quotations, :ref_customer_uuid
     add_index :tb_quotations, :ref_freight_term_uuid
     add_index :tb_quotations, :created_by

@@ -4,6 +4,11 @@ module FuncModelUtils
       stmt.join(me).on(me[:uuid].eq field[(name.underscore + "_uuid").to_sym])
     end
 
+    def left_join_me stmt, me, field
+      stmt.join(me, Arel::Nodes::OuterJoin).on(me[:uuid].eq field[(name.underscore + "_uuid").to_sym])
+    end
+
+
     def ref_dropdown
       ret = []
       where(deleted_at: nil).order(:display_name).each{|row| 

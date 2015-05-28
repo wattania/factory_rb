@@ -5,22 +5,21 @@ Ext.define 'FilterPanel',
   width: 300
   collapsed: true
   collapsible: true
-  layout: 'fit'
-  count_cmp: {}
+  layout: 'fit' 
   get_filter_values: ()-> @filter_form.getValues()
   add_filter: (text, config)->
     me = @
-    name = Ext.valueFrom config.name, '00'
+    
     cmp = Ext.clone config
-    @count_cmp[name] = 0 if Ext.isEmpty @count_cmp[name]
-    @count_cmp[name] += 1
-
+    
     Ext.apply cmp,
-      name: "#{name}_|#{@count_cmp[name]}"
       captions: [text]
       width: me.getWidth() - 50
+
+    cmp.xtype = 'x_text' if Ext.isEmpty config.xtype
  
     panel = Ext.create 'Ext.panel.Panel',
+      cmp_name: text
       layout: type: 'hbox', align: 'stretch'
       height: 60
       border: false
@@ -46,7 +45,16 @@ Ext.define 'FilterPanel',
         items: [ cmp ]
       ]
 
-    @filter_form.add panel
+    names = []
+    @filter_form.items.each (p)-> names.push p.cmp_name
+    #names = names.sort()
+
+    index = names.indexOf text
+    index = 0 if index < 0
+
+    element_total = (Ext.Array.filter names, (e)-> e == text).length
+     
+    @filter_form.insert (index + element_total), panel
   initComponent: ->
     me = @
 
@@ -83,6 +91,7 @@ Ext.define 'FilterPanel',
         text: text_fa_icon 'eraser', 'Clear', 'fa-flip'
         handler: ()->
           me.filter_form.removeAll()
+          me.fireEvent 'clear', me
       ]
     ]
     

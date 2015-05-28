@@ -12,19 +12,19 @@ class Programs::QuotationController < ResourceHelperController
     projects = {
       "record_id"     => qa[:id],
       "uuid"          => qa[:uuid],
-      "quotation_no"  => qa[:quotation_no],
-      "customer"      => ct[:display_name],
-      "created_by"    => XModelUtils.desc(ur[:first_name], ur[:last_name], ' '),
+      "quotation_no"  => {field: qa[:quotation_no], filter: :like },
+      "customer"      => {field: ct[:display_name], filter: :like },
+      "created_by"    => { field: XModelUtils.desc(ur[:first_name], ur[:last_name], ' '), filter: :like },
       "issue_date"    => qa[:issue_date],
       "freight_term"  => ft[:display_name],
       "exchange_rate" => qa[:exchange_rate],
-      "item_code"     => it[:item_code],
+      "item_code"     => { field: it[:item_code], filter: :like },
       "sub_code"      => it[:sub_code],
       "part_price"    => it[:part_price],
       "po_reference"  => it[:po_reference],
       "remark"        => it[:remark],
       "package_price" => it[:package_price],
-      "customer_code" => it[:customer_code],
+      "customer_code" => { field: it[:customer_code], filter: :like },
       "unit_price"    => ut[:display_name],
       "part_name"     => pt[:display_name],
       "model"         => md[:display_name],
@@ -34,19 +34,27 @@ class Programs::QuotationController < ResourceHelperController
 
     stmt = qa.project(project_stmt projects)
       .join(ur).on(ur[:uuid].eq(qa[:created_by]))
-      .join(it).on(it[:quotation_uuid].eq(qa[:uuid]))
+      .join(it, Arel::Nodes::OuterJoin).on(it[:quotation_uuid].eq(qa[:uuid]))
 
 
-    RefCustomer.join_me stmt, ct, qa
-    RefFreightTerm.join_me stmt, ft, qa
+    RefCustomer.left_join_me stmt, ct, qa
+    RefFreightTerm.left_join_me stmt, ft, qa
 
-    RefPartName.join_me stmt, pt, it
-    RefModel.join_me stmt, md, it
-    RefUnitPrice.join_me stmt, ut, it
+    RefPartName.left_join_me stmt, pt, it
+    RefModel.left_join_me stmt, md, it
+    RefUnitPrice.left_join_me stmt, ut, it
 
-    #RefPartName.join_me stmt, pt, it
-    #RefModel.join_me stmt, md, it
-    #RefUnitPrice.join_me stmt, ut, it
+    filter = params[:filter]
+    unless filter.blank?
+      filter_stmt stmt, JSON.parse(filter), projects do |k, v|
+        case k
+        when 'issue_date_from'
+          qa[:issue_date].gteq v 
+        when 'issue_date_to'
+          qa[:issue_date].lteq v 
+        end
+      end
+    end
 
     result[:rows] = result_rows stmt 
     result[:total] = result_total stmt
@@ -125,6 +133,26 @@ class Programs::QuotationController < ResourceHelperController
     n.save!
   end
 
+  def show_form_view result
+    create_form_create result
+
+    n = TbQuotation.where(uuid: params[:id]).first
+    
+    result[:data][:id]                    = n.id
+    result[:data][:uuid]                  = n.uuid
+    result[:data][:lock_version]          = n.lock_version
+    result[:data][:quotation_no]          = n.quotation_no
+    result[:data][:ref_customer_uuid]     = n.ref_customer_uuid
+    result[:data][:issue_date]            = n.issue_date
+    result[:data][:ref_freight_term_uuid] = n.ref_freight_term_uuid
+    result[:data][:exchange_rate]         = n.exchange_rate
+
+    User.where(uuid: n.created_by).each{|row|
+      result[:data][:created_by] = row.first_name.to_s + " " + row.last_name.to_s
+    }
+    
+  end
+
   def create_form_create result
     result[:data] = {}
     result[:data][:uuid]          = UUID.generate
@@ -132,6 +160,18 @@ class Programs::QuotationController < ResourceHelperController
     result[:data][:freight_terms] = RefFreightTerm.ref_dropdown
     result[:data][:unit_prices]   = RefUnitPrice.ref_dropdown
     result[:data][:models]        = RefModel.ref_dropdown
+  end
+
+  def update_quotation result
+    user = current_user
+
+    n = TbQuotation.find params[:id]  
+    n.ref_customer_uuid     = params[:data][:customer]
+    n.issue_date            = params[:data][:issue_date]
+    n.ref_freight_term_uuid = params[:data][:freight_term]
+    n.exchange_rate         = params[:data][:exchange_rate]
+    n.updated_by            = user.uuid
+    n.save!
   end
 
   def update_process_file result

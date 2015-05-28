@@ -22,12 +22,19 @@ class XModelUtils
 
   def self.project_stmt a_project_hash, a_other_array = []
     ret = []
-    a_project_hash.each{|k, v| 
+    a_project_hash.each{|_k, _v| 
+      k = _k
+      v = _v
+      if _v.is_a? Hash 
+        v = _v[:field]
+      end
+
       if k == :_
         ret << v.clone
       else
         ret << v.clone.method('as').call(k) 
       end
+       
     }
     
     ret + a_other_array

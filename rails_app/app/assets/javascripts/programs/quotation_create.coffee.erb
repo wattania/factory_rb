@@ -2,11 +2,37 @@ Ext.define 'QuotationCreate',
   extend: 'Ext.form.Panel'
   border: false
   layout: type: 'vbox', align: 'stretch'
+  load_grid_file_items: (uuid, name)->
+    me = @
+    me.rest_client.show uuid, name, {},
+      (res)->
+        if res.success
+          grid = me.file_upload_panel.down "grid[name=#{name}]"
+          grid.getStore().removeAll()
+          grid.getStore().add res.rows
+    ,
+      ()->
+  load_grid_items: (uuid)->
+    me = @
+    me.grid.setLoading true
+    me.rest_client.index 'item_data', { uuid: uuid },
+      (res)->
+        me.grid.getStore().removeAll()
+        me.grid.getStore().add res.rows
+        me.grid.setLoading false
+    ,
+      ()->
+        me.grid.setLoading false
 
   get_upload_grid: (name, title, init)->
     me = @
 
     xtype: 'grid'
+    listeners:
+      render: ()->
+        if init.uuid
+          me.load_grid_file_items init.uuid, name
+
     store: Ext.create 'Ext.data.Store',
       fields: [
         type: 'string', name: 'record_id'
@@ -40,14 +66,8 @@ Ext.define 'QuotationCreate',
                 me.rest_client.destroy rec.get('record_id'), name, {},
                   (res)->
                     if res.success
-                      me.rest_client.show init.uuid, name, {},
-                        (res)->
-                          if res.success
-                            grid = me.file_upload_panel.down "grid[name=#{name}]"
-                            grid.getStore().removeAll()
-                            grid.getStore().add res.rows
-                      ,
-                        ()->
+                      me.load_grid_items init.uuid
+                       
       ]
     ,
       text: 'Filename'
@@ -88,7 +108,6 @@ Ext.define 'QuotationCreate',
             jsonData:
               uuid: init.uuid
               filename: data.filename
-
       ]
     ]
 
@@ -117,12 +136,15 @@ Ext.define 'QuotationCreate',
         captions: ['Quotation No.']
         pos: [1, 1]
         name: 'quotation_no'
-        is_require: true
+        is_require: if init.id then false else true
+        value: init.quotation_no
+        readOnly: if init.id then true else false
       ,
         xtype: 'combo'
         pos: [1, 2]
         fieldLabel: 'Customer'
         name: 'customer'
+        value: init.ref_customer_uuid
         forceSelection: true
         labelAlign: 'top'
         store: Ext.create 'Ext.data.Store',
@@ -133,17 +155,20 @@ Ext.define 'QuotationCreate',
         valueField: 'uuid'
       ,
         type: 'text'
+        value: init.created_by
         captions: ['Create Person']
         pos: [1, 6]
         readOnly: true
         value: "#{USER_FIRST_NAME} #{USER_LAST_NAME}"
       ,
         type: 'date'
+        value: init.issue_date
         captions: ['Issue Date']
         pos: [1, 4]
         name: 'issue_date'
       ,
         xtype: 'combo'
+        value: init.ref_freight_term_uuid
         pos: [1, 5]
         name: 'freight_term'
         fieldLabel: 'Freight Term'
@@ -157,6 +182,7 @@ Ext.define 'QuotationCreate',
         valueField: 'uuid'
       ,
         type: 'number'
+        value: init.exchange_rate
         format: '0,000.00'
         name: 'exchange_rate'
         captions: ['Exchange Rate']
@@ -177,6 +203,11 @@ Ext.define 'QuotationCreate',
 
     @grid = Ext.create 'Ext.grid.Panel',
       flex: 1
+      listeners:
+        render: ()->
+          if init.uuid
+            me.load_grid_items init.uuid
+
       margin: '0 10 10 10'
       title: 'Import Data'
       #plugins:
@@ -232,7 +263,6 @@ Ext.define 'QuotationCreate',
                     me.grid.setLoading true
                     me.rest_client.index 'item_data', { uuid: init.uuid },
                       (res)->
-                        console.log res
                         me.grid.getStore().removeAll()
                         me.grid.getStore().add res.rows
                         me.grid.setLoading false
@@ -319,6 +349,7 @@ Ext.define 'QuotationCreate',
         dataIndex: 'remark'
         width: 200
       ]
+ 
 
     @items = [ 
       form 

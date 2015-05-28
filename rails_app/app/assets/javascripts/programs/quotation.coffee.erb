@@ -9,18 +9,28 @@ Ext.define 'QuotationView',
   listeners:
     render: (me)->
       btn_create = me.down 'button[name=create]'
+      btn_view   = me.down 'button[name=view]'
 
-      btn_create.on 'click', ()->
+      btn_create.on 'click', (btn)->
         main_page = me.up 'panel[name=main_page]'
         #close_tool = main_page.down 'tool'
         #close_tool.setVisible false
-
+        btn.setDisabled true
         me.setLoading true
         me.show_form_page btn_create.text, "create", (error)->
+          btn.setDisabled false
           me.setLoading false
 
+      btn_view.on 'click', (btn)->
+        return if me.grid.getSelectionModel().getSelection().length <= 0
+        btn.setDisabled true
+        me.setLoading true
+        me.show_form_page btn_view.text, "view", (error)->
+          btn.setDisabled false
+          me.setLoading false
+
+
   get_form: (name, init)->
-    console.log "get_form", init
     me = @
     Ext.create "QuotationCreate",
       init: init
@@ -65,52 +75,69 @@ Ext.define 'QuotationView',
     form_name = "form"
     form_name += "_#{name}" unless Ext.isEmpty name
 
-    me.rest_client.create form_name, {},
-      (res)->
-        if res.success
+    show =(res)->
+      form = me.get_form name, res.data  
+      n = me.add  
+        dockedItems: [
+          xtype: 'toolbar'
+          dock: 'top'
+          items: [
+            xtype: 'button'
+            text: text_fa_icon 'save', 'Save'
+            handler: (btn)->
+              return unless form.isValid()
+              Ext.Msg.show
+                title:'Save?'
+                message: "Save Quotation"
+                buttons: Ext.Msg.YESNO
+                icon: Ext.Msg.QUESTION
+                fn: (ans)->
+                  if ans == 'yes'
+                    me.save_quotation form, (success)->
+                      if success
+                        main_page.restore_title()
+                        me.getLayout().setActiveItem 0
+                        me.remove n
+                        me.grid.getStore().loadPage 1
 
-          form = me.get_form name, res.data
-        
-          n = me.add  
-            dockedItems: [
-              xtype: 'toolbar'
-              dock: 'top'
-              items: [
-                xtype: 'button'
-                text: text_fa_icon 'save', 'Save'
-                handler: (btn)->
-                  return unless form.isValid()
-                  Ext.Msg.show
-                    title:'Save?'
-                    message: "Save Quotation"
-                    buttons: Ext.Msg.YESNO
-                    icon: Ext.Msg.QUESTION
-                    fn: (ans)->
-                      if ans == 'yes'
-                        me.save_quotation form, (success)->
-                          if success
-                            main_page.restore_title()
-                            me.getLayout().setActiveItem 0
-                            me.remove n
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'arrow-left', 'Back'
+            handler: ()->
+              main_page.restore_title()
+              me.getLayout().setActiveItem 0
+              me.remove n
+          ]
+        ]
+        layout: 'fit'
+        items: form
 
-              ,
-                xtype: 'button'
-                text: text_fa_icon 'arrow-left', 'Back'
-                handler: ()->
-                  main_page.restore_title()
-                  me.getLayout().setActiveItem 0
-                  me.remove n
-              ]
-            ]
-            layout: 'fit'
-            items: form
+      n
 
-          me.getLayout().setActiveItem n
+    switch name
+      when "create"
+        me.rest_client.create form_name, {},
+          (res)->
+            if res.success
+              me.getLayout().setActiveItem show res
 
-        callback res.success
-    ,
-      ()->
-        callback()
+            callback res.success
+        ,
+          ()->
+            callback()
+
+      when "view"
+        selects = me.grid.getSelectionModel().getSelection()
+        return if selects.length <= 0
+        me.rest_client.show selects[0].get('uuid'), form_name, {},
+          (res)->
+            if res.success
+              me.getLayout().setActiveItem show res
+
+            callback res.success
+        ,
+          ()->
+            callback()
 
   initComponent: ->
     me = @ 
@@ -119,18 +146,63 @@ Ext.define 'QuotationView',
       region: 'east'
       listeners:
         search: (c, values)->
-          me.grid.getStore().loadPage 1
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
+
+        clear: (c)->
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
            
       cmps: [
         text: 'Quotation No.'
-        cmp:
-          xtype: 'x_date_range'
-          name: 'quotation'
+        cmp: xtype: 'x_text', name: 'quotation_no'  
       ,
-        text: 'EEE'
-        cmp:
-          xtype: 'x_text'
-          name: 'eee'
+        text: 'Customer'
+        cmp: xtype: 'x_text', name: 'customer'
+      ,
+        text: 'Create Person'
+        cmp: xtype: 'x_text', name: 'created_by'
+      ,
+        text: 'Issue Date'
+        cmp: xtype: 'x_date_range', name: 'issue_date'
+      ,
+        text: 'Freight Term'
+        cmp: xtype: 'x_text', name: 'freight_term'
+      ,
+        text: 'Exch. Rate'
+        cmp: xtype: 'x_number', name: 'exchange_rate', format: '0,000.00'
+      ,
+        text: 'Item Code'
+        cmp: name: 'item_code'
+      ,
+        text: 'Model'
+        cmp: name: 'model'
+      ,
+        text: 'Sub Code'
+        cmp: name: 'sub_code'
+      ,
+        text: 'Customer Code'
+        cmp: name: 'customer_code'
+      ,
+        text: 'Part Name'
+        cmp: name: 'part_name'
+      ,
+        text: 'Package Price'
+        cmp: xtype: 'x_number', name: 'part_name'
+      ,
+        text: 'Total Price'
+        cmp: xtype: 'x_number', name: 'total_price'
+      ,
+        text: 'Unit Price'
+        cmp: name: 'unit_price'
+      ,
+        text: 'PO Reference'
+        cmp: name: 'po_reference'
+      ,
+        text: 'Remark'
+        cmp: name: 'remark'
       ]
 
     store = Ext.create 'Ext.data.Store',
@@ -150,12 +222,13 @@ Ext.define 'QuotationView',
       ]
       autoLoad: true
       listeners:
+        load: ()-> me.grid.check_btns()
         beforeload: (store)->
           values = filter_panel.get_filter_values()
-
           Ext.apply store.getProxy().extraParams = {method: 'list'}
-          Ext.apply store.getProxy().extraParams, values
-
+          if Object.keys(values).length > 0
+            Ext.apply store.getProxy().extraParams, 
+              filter: Ext.JSON.encode values
           true
 
       proxy:
@@ -183,6 +256,17 @@ Ext.define 'QuotationView',
       region: 'center'
       flex: 1
       store: store 
+      check_btns: ()->
+        view_btn = @down 'button[name=view]'
+        view_btn.setDisabled !(@getSelectionModel().getSelection().length > 0)
+
+      listeners:
+        itemdblclick: ()->
+          view_btn = @down 'button[name=view]'
+          view_btn.fireEvent 'click', view_btn
+
+        selectionchange: ()-> me.grid.check_btns()
+          
       dockedItems: [
         xtype: 'toolbar'
         dock: 'top'
@@ -190,10 +274,10 @@ Ext.define 'QuotationView',
           xtype: 'button'
           text: text_fa_icon 'file', 'Create'
           name: 'create'
-          name: 'create'
         ,
           xtype: 'button'
           text: text_fa_icon 'edit', 'View'
+          name: 'view'
           disabled: true
         ]
       ,
