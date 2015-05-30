@@ -131,7 +131,8 @@ Ext.define 'QuotationCreate',
 
   getValues: ()->
     ret = @callParent arguments
-    ret.edit_items = @grid.getStore().get_new_items()
+    ret.edit_items = @grid.getStore().get_edit_items()
+    ret.new_items  = @grid.getStore().get_new_items()
     ret
   load_grid_file_items: (uuid, name)->
     me = @
@@ -386,7 +387,7 @@ Ext.define 'QuotationCreate',
           load: ()-> me.grid.check_btns() 
         get_edit_items: ()->
           ret = []
-          @each (record)-> ret.push record.data unless record.is_excel()
+          @each (record)-> ret.push record.data if record.get('file_hash') == 'edit'
           ret
         get_new_items: ()->
           ret = []

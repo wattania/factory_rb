@@ -92,8 +92,8 @@ class Programs::QuotationController < ResourceHelperController
     n.updated_by            = user.uuid
 
     line_error = {}
-    if (params[:data] || {})[:edit_items].is_a? Array
-      (params[:data] || {})[:edit_items].each_with_index{|item, index|
+    if (params[:data] || {})[:new_items].is_a? Array
+      (params[:data] || {})[:new_items].each_with_index{|item, index|
     
         m = TbQuotationItem.new
         m.created_by = user.uuid
