@@ -11,4 +11,10 @@ class UploadController < ApplicationController
     
     render json: ret
   end
+
+  def download
+    FileUpload.where(file_hash: params[:id]).limit(1).each{|f|
+      send_data(f.get_file_data, {filename: params[:name], type: params[:type] })
+    }
+  end
 end

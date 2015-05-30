@@ -17,7 +17,9 @@ Ext.define 'Ext.xsk.Upload5',
         name: Ext.valueFrom config.name, 'file'
         width: Ext.valueFrom config.width, 100
         height: Ext.valueFrom config.height, 22
-        buttonConfig: style: 'border-color: transparent;'
+        #buttonConfig: 
+        #  style: 'border-color: transparent;'
+        #  #icon: ProgHelper.img_url "upload.png"
         style: 'margin: 0px;'
         buttonText: config.text
         buttonOnly: true
@@ -38,7 +40,7 @@ Ext.define 'Ext.xsk.Upload5',
               listeners: 
                 show: (win)->
                   formData = new FormData()
-                  formData.append Ext.valueFrom(config.name, "file"), file
+                  formData.append "file", file#Ext.valueFrom(config.name, "file"), file
                   formData.append "authenticity_token", document.getElementsByTagName("meta")[1].content
                   formData.append "upload_id", me.GUID()
                   formData.append "method", "upload"

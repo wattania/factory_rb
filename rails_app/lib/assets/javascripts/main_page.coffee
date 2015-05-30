@@ -94,6 +94,7 @@ Ext.define 'MainPage',
             type: 'close'
             callback: (tool)->
               me.getLayout().setActiveItem 0
+              me.page_manager.set_logo()
               me.remove x
           ]
           items: view
@@ -146,10 +147,14 @@ Ext.define 'MainPage',
         items: [
           text: "<b>Quotation</b>"
           program: 'quotation'
+          image: 'quotation_logo.png'
           icon: ProgHelper.img_url "Wikibooks-logo.png"
           handler: (btn)->
             btn.setDisabled true
-            me.load_page btn.program, btn.text, ()-> btn.setDisabled false
+            me.load_page btn.program, btn.text, (success)->
+              if success
+                me.page_manager.set_logo btn.image
+              btn.setDisabled false
         ,
           text: "<b>Customer Prop.</b>"
           program: 'cust_prop' 

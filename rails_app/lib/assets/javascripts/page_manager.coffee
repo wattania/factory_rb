@@ -8,7 +8,7 @@
 Ext.define 'PageManager',
   extend: 'Ext.container.Viewport'
   layout: { type: 'vbox', align: 'stretch'}
-  ori_logo: ProgHelper.img_url 'I-AM-NIKON-logo.jpeg'
+  ori_logo: ProgHelper.img_url 'quotation_logo.png'#'I-AM-NIKON-logo.jpeg'
   renderTo: Ext.getBody()
   listeners: 
     afterrender: (panel)->
@@ -28,7 +28,13 @@ Ext.define 'PageManager',
     @rest_client = Ext.create 'RestClient', { url: "program_manager" }
     @callParent arguments
   set_logo: (url)->
-    return if Ext.isEmpty url 
+    img = @down 'image[name=program_logo]'
+    if Ext.isEmpty url 
+      img.setSrc @ori_logo
+    else 
+      img = @down 'image[name=program_logo]'
+      img.setSrc ProgHelper.img_url url
+
 
   initComponent: ->
     me = @
@@ -37,14 +43,19 @@ Ext.define 'PageManager',
       layout: 'card'
       border: false
       flex: 1
+      listeners:
+        activate: ()-> console.log "activate1"
 
     @items = [ 
       height: 50
       bodyPadding: 5
       border: false
       layout: {type: 'hbox', align: 'middle'}
+      listeners:
+        activate: ()-> console.log "activate"
       items: [
         xtype: 'image'
+        name: 'program_logo'
         src: @ori_logo
         height: 40
         margin: '5 0 0 5'

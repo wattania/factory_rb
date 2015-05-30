@@ -1,7 +1,138 @@
+Ext.define 'QuotationItemModel',
+  extend: 'Ext.data.Model'
+  fields: [
+    type: 'string', name: 'item_code'
+    type: 'string', name: 'model'
+    type: 'string', name: 'sub_code'
+    type: 'string', name: 'part_name'
+    type: 'string', name: 'customer_code'
+    type: 'string', name: 'unit_price'
+    type: 'float',  name: 'package_price'
+    type: 'float',  name: 'total_price'
+    type: 'integer', name: 'row_no'
+    type: 'string', name: 'file_hash'
+  ]
+  is_excel: ()-> !(Ext.isEmpty(@get 'file_hash') or @get('file_hash') == 'edit')
+  get_price: (field)->
+    ret = @get field
+    unless Ext.isNumeric ret
+      0 
+    else
+      parseFloat(parseFloat(ret).toFixed(2))
+
+  cal_total_price: ()->
+    ret = @get_price('part_price') + @get_price('package_price')
+    @set 'total_price', ret
+    @commit()
+    ret
+
 Ext.define 'QuotationCreate',
   extend: 'Ext.form.Panel'
   border: false
   layout: type: 'vbox', align: 'stretch'
+  listeners:
+    render: (me)->
+      init = Ext.valueFrom me.initialConfig.init, {}
+
+      upload_quotation_item = me.down 'upload5[name=quotation_item]'
+      btn_item_remove = me.down 'button[name=remove]'
+      btn_item_add    = me.down 'button[name=add]'
+
+      me.grid.on 'beforeedit', (editor, context, eOpts)->
+        if context.record.is_excel()
+          btn_item_remove.setDisabled false
+          upload_quotation_item.setDisabled false
+          btn_item_add.setDisabled false
+          false
+        else
+          if context.field in ['total_price']
+            btn_item_remove.setDisabled false
+            upload_quotation_item.setDisabled false
+            btn_item_add.setDisabled false
+            false
+          else
+            btn_item_remove.setDisabled true
+            btn_item_add.setDisabled true
+            upload_quotation_item.setDisabled true
+            true
+
+      me.grid.on 'edit', (editor, context)-> 
+        btn_item_remove.setDisabled false
+        btn_item_add.setDisabled false
+        upload_quotation_item.setDisabled false
+
+        context.record.commit()
+        if context.field in ['part_price', 'package_price']
+          context.record.cal_total_price()
+
+      btn_item_add.on 'click', (btn)->
+        store = me.grid.getStore()
+        btn.setDisabled true
+        btn.setText text_fa_icon 'refresh', '', 'fa-spin'
+
+        me.rest_client.create 'add_item', {uuid: init.uuid},
+          (res)->
+            btn.setDisabled false
+            btn.setText text_fa_icon 'plus', ''
+            if res.success
+              store.removeAll()
+              recs = store.add res.rows
+              me.grid.getSelectionModel().select recs[0]
+        ,
+          ()->
+            btn.setDisabled false
+            btn.setText text_fa_icon 'plus', ''
+        ,
+          jsonData:
+            records: store.get_new_items()
+
+      btn_item_remove.on 'click', (btn)->
+        selects = me.grid.getSelectionModel().getSelection()
+        if selects.length <= 0
+          btn.setDisabled true
+        else
+          if selects[0].is_excel()
+
+            Ext.Msg.show
+              title:'Remove All Excel datas?'
+              message: "Total #{me.grid.getTotalExcel()}"
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes'
+
+                  btn.setDisabled true
+                  me.grid.setLoading true
+                  me.rest_client.update init.uuid, 'remove_excel_items', {},
+                    (res)->
+                      btn.setDisabled false
+                      me.grid.setLoading false
+                      if res.success
+                        me.grid.getStore().removeAll()
+                        me.grid.getStore().add res.rows
+                        me.grid.chek_btns()
+                  , 
+                    ()->
+                      btn.setDisabled false
+                      me.grid.setLoading false
+                  ,
+                    jsonData:
+                      records: me.grid.getStore().get_new_items()
+
+          else
+            Ext.Msg.show
+              title:'Remove Selected?'
+              message: "Total #{selects.length}"
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes'
+                  me.grid.getStore().remove selects
+
+  getValues: ()->
+    ret = @callParent arguments
+    ret.edit_items = @grid.getStore().get_new_items()
+    ret
   load_grid_file_items: (uuid, name)->
     me = @
     me.rest_client.show uuid, name, {},
@@ -36,6 +167,7 @@ Ext.define 'QuotationCreate',
     store: Ext.create 'Ext.data.Store',
       fields: [
         type: 'string', name: 'record_id'
+        type: 'string', name: 'hash'
         type: 'string', name: 'filename'
         type: 'string', name: 'uploaded'
       ]
@@ -47,11 +179,12 @@ Ext.define 'QuotationCreate',
         tooltip: 'Download'
         handler: (grid, rowIndex, colIndex)->
           rec = grid.getStore().getAt rowIndex
+          DownloadBox.get rec.get("hash"), rec.get('filename'), ''
           
       ,
         icon: ProgHelper.img_url "space.png"
       ,
-        icon: ProgHelper.img_url "file_delete_16.png"
+        icon: ProgHelper.img_url "file_delete.png"
         tooltip: 'Delete'
         handler: (grid, rowIndex, colIndex)->
           rec = grid.getStore().getAt rowIndex
@@ -66,7 +199,7 @@ Ext.define 'QuotationCreate',
                 me.rest_client.destroy rec.get('record_id'), name, {},
                   (res)->
                     if res.success
-                      me.load_grid_items init.uuid
+                      me.load_grid_file_items init.uuid, name
                        
       ]
     ,
@@ -79,8 +212,8 @@ Ext.define 'QuotationCreate',
       width: 150
 
     ]
-    name: name#'approve_file'
-    title: title#'Upload Approve File'
+    name: name
+    title: title
     flex: 1
     dockedItems: [
       xtype: 'toolbar'
@@ -183,7 +316,7 @@ Ext.define 'QuotationCreate',
       ,
         type: 'number'
         value: init.exchange_rate
-        format: '0,000.00'
+        format: '0,000.0000'
         name: 'exchange_rate'
         captions: ['Exchange Rate']
         pos: [1, 3]
@@ -199,41 +332,81 @@ Ext.define 'QuotationCreate',
       ,
         @get_upload_grid 'calculation_file', 'Calculation File', init
       ]
-      
+
+    ref_conf =(data)->
+      store: Ext.create 'Ext.data.Store',
+        fields: ['display_name', 'uuid']
+        data: data
+      forceSelection: true
+      queryMode: 'local'
+      displayField: 'display_name'
+      valueField: 'uuid'
+
+    ref_render=(v, ref)->
+      ret = (Ext.Array.filter ref, (e)-> e.uuid == v)[0]
+      unless Ext.isEmpty ret
+        ret.display_name
+      else
+        v
 
     @grid = Ext.create 'Ext.grid.Panel',
+      getTotalExcel: ()->
+        store = @getStore()
+        total = 0
+        store.each (record)-> total += 1 if record.is_excel()
+        total
+      chek_btns: ()->
+        remove_btn = @down 'button[name=remove]'
+        selects = @getSelectionModel().getSelection()
+        if selects.length > 0
+          hash = selects[0].get 'file_hash'
+          if Ext.isEmpty(hash) or (hash == 'edit')
+            remove_btn.setDisabled false
+            remove_btn.setText text_fa_icon 'times', ''
+          else
+            remove_btn.setDisabled false
+            remove_btn.setText text_fa_icon 'times', "Remove Excel (#{@getTotalExcel()})"
+        else
+          remove_btn.setText text_fa_icon 'times', ''
+          remove_btn.setDisabled true
+
       flex: 1
       listeners:
+        selectionchange: ()-> @chek_btns()
         render: ()->
           if init.uuid
             me.load_grid_items init.uuid
 
       margin: '0 10 10 10'
-      title: 'Import Data'
-      #plugins:
-      #  ptype: 'cellediting'
-      #  clicksToEdit: 1
+      title: 'Details'
+      plugins: ptype: 'cellediting', clicksToEdit: 1
       store: Ext.create 'Ext.data.Store',
-        fields: [
-          type: 'string', name: 'item_code'
-          type: 'string', name: 'model'
-          type: 'string', name: 'sub_code'
-          type: 'string', name: 'part_name'
-          type: 'string', name: 'customer_code'
-          type: 'string', name: 'unit_price'
-          type: 'float', name: 'package_price'
-          type: 'integer', name: 'row_no'
-        ]
-      
-
+        model: 'QuotationItemModel'  
+        listeners:
+          load: ()-> me.grid.check_btns() 
+        get_edit_items: ()->
+          ret = []
+          @each (record)-> ret.push record.data unless record.is_excel()
+          ret
+        get_new_items: ()->
+          ret = []
+          @each (record)-> ret.push record.data if Ext.isEmpty(record.get 'file_hash')
+          ret
       dockedItems: [
         xtype: 'toolbar'
         dock: 'top'
         items: [
+          xtype: 'button'
+          text: text_fa_icon 'plus', ''
+          name: 'add'
+        ,
           xtype: 'upload5'
+          name: 'quotation_item'
+          width: 30
           extra_params:
             quotation_uuid: init.uuid
           text: text_fa_icon 'upload', ''
+
           callback: (err, data)->
             return if err
             
@@ -243,6 +416,8 @@ Ext.define 'QuotationCreate',
                 me.grid.setLoading false
                 if response.success
                   unless response.valid
+                    ErrorBox.invalid_html response.html
+                    ###
                     Ext.create('Ext.window.Window',
                       layout: 'fit'
                       width: 600
@@ -259,11 +434,21 @@ Ext.define 'QuotationCreate',
                             @getToolbar().hide()
                             @setReadOnly true
                     ).show()
+                    ###
                   else
                     me.grid.setLoading true
                     me.rest_client.index 'item_data', { uuid: init.uuid },
                       (res)->
-                        me.grid.getStore().removeAll()
+                        store = me.grid.getStore()
+                        hash_records = []
+                        store.each (rec)->
+                          hash = rec.get 'file_hash'
+                          if Ext.isEmpty(hash) or hash == 'edit'
+                          else
+                            hash_records.push rec
+
+                        store.remove hash_records if hash_records.length > 0
+                        #me.grid.getStore().removeAll()
                         me.grid.getStore().add res.rows
                         me.grid.setLoading false
                     ,
@@ -276,78 +461,106 @@ Ext.define 'QuotationCreate',
             ,
               jsonData:
                 quotation_uuid: init.uuid
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'times', ''
+          disabled: true
+          name: 'remove'
+        , 
+          '->'
+        ,
+          xtype: 'button'
+          #icon: ProgHelper.img_url "Download-icon.png"
+          text: text_fa_icon 'download', 'Download'
+          tooltip: 'Download'
+          handler: ()->
         ]
       ]
       columns: [
-        ###
-        xtype:'actioncolumn'
-        width: 30
-        align: 'center'
-        items: [
-          icon: ProgHelper.img_url "file_delete.png"
-          tooltip: 'Delete'
-          handler: (grid, rowIndex, colIndex)->
-            rec = grid.getStore().getAt rowIndex
-            grid.getStore().remove rec
-        ]
-        ,
-        ###
         xtype: 'rownumberer'
         width: 45
       ,
-        text: text_fa_icon 'file-excel-o', 'Line'
-        width: 55
+        text: ''
+        width: 30
         dataIndex: 'row_no'
-        align: 'right'
+        align: 'center'
+        renderer: (v, meta, record)->
+          switch record.get('file_hash')
+            when "edit"
+              "<font color=blue><b>" + (text_fa_icon 'edit', '') + "</b></font>"
+              (text_fa_icon 'edit', '')
+            else
+              if Ext.isEmpty record.get('file_hash')
+                ''
+              else
+                "<font color=green><b>" + (text_fa_icon 'file-excel-o', '') + "</b></font>"
       ,
         text: 'Item Code'
         dataIndex: 'item_code'
         width: 100
+        editor: xtype: 'textfield'
       ,
         text: 'Model'
         dataIndex: 'model'
         width: 90
+        editor: Ext.apply {xtype: 'combo'}, ref_conf(init.models)
+        renderer: (v)->
+          ref_render v, init.models
       ,
         text: 'Sub Code'
         width: 90
         dataIndex: 'sub_code'
+        editor: xtype: 'textfield'
       ,
         text: 'Customer Code'
         width: 120
         dataIndex: 'customer_code'
+        editor: xtype: 'textfield'
       ,
         text: 'Part Name'
         dataIndex: 'part_name'
         width: 100
+        editor: Ext.apply {xtype: 'combo'}, ref_conf(init.part_names)
+        renderer: (v)->
+          ref_render v, init.part_names
       ,
         text: 'Part Price'
         dataIndex: 'part_price'
         align: 'right'
         width: 120
+        editor: xtype: 'x_number'
         renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Package Price'
         dataIndex: 'package_price'
         align: 'right'
         width: 120
+        editor: xtype: 'x_number'
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Total Price'
         dataIndex: 'total_price'
         align: 'right'
         width: 120
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Unit Price'
         dataIndex: 'unit_price'
         align: 'center'
         width: 80
+        editor: Ext.apply {xtype: 'combo'}, ref_conf(init.unit_prices)
+        renderer: (v)->
+          ref_render v, init.unit_prices
       ,
         text: 'PO Reference'
         width: 120
         dataIndex: 'po_reference'
+        editor: xtype: 'textfield'
       ,
         text: 'Remark'
         dataIndex: 'remark'
         width: 200
+        editor: xtype: 'textfield'
       ]
  
 

@@ -29,6 +29,7 @@ showLoading = (text, isWhiteScreen)->
 
     Ext.get('loading').show();
 
+Ext.tip.QuickTipManager.init()
 Ext.Loader.setPath 'Program', 'assets/programs'
 Ext.Loader.setPath 'Setting', 'assets/settings'
 Ext.Loader.setPath 'Form', 'assets/forms'

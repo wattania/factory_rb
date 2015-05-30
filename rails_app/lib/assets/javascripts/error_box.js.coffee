@@ -1,6 +1,31 @@
 Ext.define 'ErrorBox',
   alias: 'widget.ErrorBox'
   extend: 'Ext.panel.Panel'
+  statics:
+    invalid_html: (html, config)->
+      console.log "-b-"
+      c = 
+        layout: 'fit'
+        width: 600
+        height: 400
+        modal: true
+        items: 
+          xtype: 'htmleditor'
+          name: 'html_logger' 
+          submitValue: false
+          border: false
+          value: html
+          listeners:
+            render: ()->
+              @getToolbar().hide()
+              @setReadOnly true
+
+      Ext.apply c, config if Ext.isObject config
+
+      w = Ext.create 'Ext.window.Window', c
+      console.log "-c-"
+      w.show()
+
   show: ()->
     me = @
     dialogButtons = [

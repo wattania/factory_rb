@@ -44,7 +44,12 @@ Ext.define 'QuotationView',
       me.rest_client.update values.id, 'quotation', {},
         (res)->
           me.setLoading false
-          callback res.success
+          if res.success
+            valid = Ext.valueFrom(res.valid, false)
+            ErrorBox.invalid_html res.html unless valid
+            callback valid
+          else
+            callback res.success
       ,
         ()->
           me.setLoading false
@@ -57,7 +62,12 @@ Ext.define 'QuotationView',
       me.rest_client.create 'quotation', {},
         (res)->
           me.setLoading false
-          callback res.success
+          if res.success
+            valid = Ext.valueFrom(res.valid, false)
+            ErrorBox.invalid_html res.html unless valid
+            callback valid
+          else
+            callback res.success
       ,
         ()->
           me.setLoading false
@@ -172,7 +182,7 @@ Ext.define 'QuotationView',
         cmp: xtype: 'x_text', name: 'freight_term'
       ,
         text: 'Exch. Rate'
-        cmp: xtype: 'x_number', name: 'exchange_rate', format: '0,000.00'
+        cmp: xtype: 'x_number', name: 'exchange_rate', format: '0,000.0000'
       ,
         text: 'Item Code'
         cmp: name: 'item_code'
@@ -309,6 +319,7 @@ Ext.define 'QuotationView',
         text: 'Exch.Rate'
         dataIndex: 'exchange_rate'
         align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000.0000')
       ,
         text: 'Item Code'
         dataIndex: 'item_code'
@@ -324,6 +335,11 @@ Ext.define 'QuotationView',
       ,
         text: 'Part Name'
         dataIndex: 'part_name'
+      ,
+        text: 'Part Price'
+        dataIndex: 'part_price'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Package Price'
         dataIndex: 'package_price'
