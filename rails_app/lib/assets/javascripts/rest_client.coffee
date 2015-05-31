@@ -124,11 +124,12 @@ Ext.define 'DownloadBox',
             
             Ext.defer ()->
               win.add iframe
-              win.setVisible false
               
               Ext.defer ()->
-                win.close()
-              , 2500
-
+                win.setVisible false
+                Ext.defer ->
+                  win.close()
+                , 10000
+              , 3000
             , 500
       win.show()
