@@ -17,7 +17,16 @@ Ext.define 'FilterPanel',
       width: me.getWidth() - 50
 
     cmp.xtype = 'x_text' if Ext.isEmpty config.xtype
- 
+    
+    _p = Ext.create 'Ext.panel.Panel',
+      border: false
+      layout: type: 'vbox'
+      margin: '5 0 0 5'
+
+    _p.add(cmp).on 'specialkey', (field, e)->
+      if (e.getKey() == e.ENTER) 
+        me.fireEvent 'search', me, me.filter_form.getValues()
+
     panel = Ext.create 'Ext.panel.Panel',
       cmp_name: text
       layout: type: 'hbox', align: 'stretch'
@@ -26,7 +35,7 @@ Ext.define 'FilterPanel',
       items: [
         layout: type: 'vbox'#, align: 'stretch'
         border: false
-        bodyPadding: '5 0 0 2'
+        bodyPadding: '4 0 0 4'
         items: [
           xtype: 'button'
           text: text_fa_icon 'times', ''
@@ -39,10 +48,7 @@ Ext.define 'FilterPanel',
           border: false 
         ]
       ,
-        border: false
-        layout: type: 'vbox'
-        margin: '5 0 0 5'
-        items: [ cmp ]
+        _p
       ]
 
     names = []

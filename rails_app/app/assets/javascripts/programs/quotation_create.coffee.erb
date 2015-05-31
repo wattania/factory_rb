@@ -2,11 +2,12 @@ Ext.define 'QuotationItemModel',
   extend: 'Ext.data.Model'
   fields: [
     type: 'string', name: 'item_code'
-    type: 'string', name: 'model'
+    type: 'string', name: 'ref_model_uuid'
+    type: 'string', name: 'record_id'
     type: 'string', name: 'sub_code'
-    type: 'string', name: 'part_name'
+    type: 'string', name: 'ref_part_name_uuid'
     type: 'string', name: 'customer_code'
-    type: 'string', name: 'unit_price'
+    type: 'string', name: 'ref_unit_price_uuid'
     type: 'float',  name: 'package_price'
     type: 'float',  name: 'total_price'
     type: 'integer', name: 'row_no'
@@ -385,14 +386,23 @@ Ext.define 'QuotationCreate',
         model: 'QuotationItemModel'  
         listeners:
           load: ()-> me.grid.check_btns() 
-        get_edit_items: ()->
-          ret = []
-          @each (record)-> ret.push record.data if record.get('file_hash') == 'edit'
+        __get_items: (type)->
+          ret = [] 
+          store = @
+          @each (record)-> 
+            rec = null
+            switch type
+              when 'edit'
+                rec = record if record.get('file_hash') == 'edit'
+              when 'new'
+                rec = record if Ext.isEmpty(record.get 'file_hash')
+
+            unless Ext.isEmpty rec 
+              ret.push Ext.apply record.data, { row_no: (store.indexOf(record) + 1)}
+
           ret
-        get_new_items: ()->
-          ret = []
-          @each (record)-> ret.push record.data if Ext.isEmpty(record.get 'file_hash')
-          ret
+        get_edit_items: ()->@__get_items 'edit'
+        get_new_items: ()-> @__get_items 'new'
       dockedItems: [
         xtype: 'toolbar'
         dock: 'top'
@@ -502,7 +512,7 @@ Ext.define 'QuotationCreate',
         editor: xtype: 'textfield'
       ,
         text: 'Model'
-        dataIndex: 'model'
+        dataIndex: 'ref_model_uuid'
         width: 90
         editor: Ext.apply {xtype: 'combo'}, ref_conf(init.models)
         renderer: (v)->
@@ -519,7 +529,7 @@ Ext.define 'QuotationCreate',
         editor: xtype: 'textfield'
       ,
         text: 'Part Name'
-        dataIndex: 'part_name'
+        dataIndex: 'ref_part_name_uuid'
         width: 100
         editor: Ext.apply {xtype: 'combo'}, ref_conf(init.part_names)
         renderer: (v)->
@@ -546,7 +556,7 @@ Ext.define 'QuotationCreate',
         renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Unit Price'
-        dataIndex: 'unit_price'
+        dataIndex: 'ref_unit_price_uuid'
         align: 'center'
         width: 80
         editor: Ext.apply {xtype: 'combo'}, ref_conf(init.unit_prices)

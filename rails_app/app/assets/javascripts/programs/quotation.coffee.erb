@@ -10,6 +10,10 @@ Ext.define 'QuotationView',
     render: (me)->
       btn_create = me.down 'button[name=create]'
       btn_view   = me.down 'button[name=view]'
+      chkbox_group_filter = me.down 'checkbox[name=group_by_quotation]'
+
+      chkbox_group_filter.on 'change', ()->
+        me.grid.getStore().loadPage 1
 
       btn_create.on 'click', (btn)->
         main_page = me.up 'panel[name=main_page]'
@@ -29,6 +33,14 @@ Ext.define 'QuotationView',
           btn.setDisabled false
           me.setLoading false
 
+      me.grid.getStore().on 'load', ()-> me.grid.check_btns()
+      me.grid.getStore().on 'beforeload', (store)->
+        values = me.filter_panel.get_filter_values()
+        Ext.apply store.getProxy().extraParams = {method: 'list', group_quotation: chkbox_group_filter.getValue()}
+        if Object.keys(values).length > 0
+          Ext.apply store.getProxy().extraParams, 
+            filter: Ext.JSON.encode values
+        true
 
   get_form: (name, init)->
     me = @
@@ -152,7 +164,7 @@ Ext.define 'QuotationView',
   initComponent: ->
     me = @ 
 
-    filter_panel = Ext.create 'FilterPanel',
+    @filter_panel = Ext.create 'FilterPanel',
       region: 'east'
       listeners:
         search: (c, values)->
@@ -180,9 +192,9 @@ Ext.define 'QuotationView',
       ,
         text: 'Freight Term'
         cmp: xtype: 'x_text', name: 'freight_term'
-      ,
-        text: 'Exch. Rate'
-        cmp: xtype: 'x_number', name: 'exchange_rate', format: '0,000.0000'
+        #,
+        #text: 'Exch. Rate'
+        #cmp: xtype: 'x_number', name: 'exchange_rate', format: '0,000.0000'
       ,
         text: 'Item Code'
         cmp: name: 'item_code'
@@ -198,12 +210,12 @@ Ext.define 'QuotationView',
       ,
         text: 'Part Name'
         cmp: name: 'part_name'
-      ,
-        text: 'Package Price'
-        cmp: xtype: 'x_number', name: 'part_name'
-      ,
-        text: 'Total Price'
-        cmp: xtype: 'x_number', name: 'total_price'
+        #,
+        #text: 'Package Price'
+        #cmp: xtype: 'x_number', name: 'part_name'
+        #,
+        #text: 'Total Price'
+        #cmp: xtype: 'x_number', name: 'total_price'
       ,
         text: 'Unit Price'
         cmp: name: 'unit_price'
@@ -231,15 +243,6 @@ Ext.define 'QuotationView',
         'model'
       ]
       autoLoad: true
-      listeners:
-        load: ()-> me.grid.check_btns()
-        beforeload: (store)->
-          values = filter_panel.get_filter_values()
-          Ext.apply store.getProxy().extraParams = {method: 'list'}
-          if Object.keys(values).length > 0
-            Ext.apply store.getProxy().extraParams, 
-              filter: Ext.JSON.encode values
-          true
 
       proxy:
         type: 'ajax'
@@ -289,6 +292,13 @@ Ext.define 'QuotationView',
           text: text_fa_icon 'edit', 'View'
           name: 'view'
           disabled: true
+        ,
+          '->'
+        ,
+          xtype: 'checkbox'
+          name: 'group_by_quotation'
+          boxLabel : 'Group By Quotation No.'
+          inputValue: true
         ]
       ,
         xtype: 'pagingtoolbar'
@@ -344,10 +354,12 @@ Ext.define 'QuotationView',
         text: 'Package Price'
         dataIndex: 'package_price'
         align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Total Price'
         dataIndex: 'total_price'
         align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
       ,
         text: 'Unit Price'
         dataIndex: 'unit_price'
@@ -382,7 +394,7 @@ Ext.define 'QuotationView',
       items: [
         @grid
       ,
-        filter_panel
+        @filter_panel
       ]
     ]
     @callParent arguments

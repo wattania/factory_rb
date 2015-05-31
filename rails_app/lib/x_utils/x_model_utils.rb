@@ -28,13 +28,7 @@ class XModelUtils
       if _v.is_a? Hash 
         v = _v[:field]
       end
-
-      if k == :_
-        ret << v.clone
-      else
-        ret << v.clone.method('as').call(k) 
-      end
-       
+      ret << v.clone.method('as').call(k) 
     }
     
     ret + a_other_array
