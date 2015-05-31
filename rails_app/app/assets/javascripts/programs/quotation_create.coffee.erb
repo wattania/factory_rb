@@ -181,7 +181,7 @@ Ext.define 'QuotationCreate',
         tooltip: 'Download'
         handler: (grid, rowIndex, colIndex)->
           rec = grid.getStore().getAt rowIndex
-          DownloadBox.get rec.get("hash"), rec.get('filename'), ''
+          DownloadBox.get rec.get("hash"), {filename: rec.get('filename')}
           
       ,
         icon: ProgHelper.img_url "space.png"
@@ -483,8 +483,30 @@ Ext.define 'QuotationCreate',
           xtype: 'button'
           #icon: ProgHelper.img_url "Download-icon.png"
           text: text_fa_icon 'download', 'Download'
-          tooltip: 'Download'
-          handler: ()->
+          tooltip: 'Download Details'
+          handler: (btn)->
+            total = me.grid.getStore().getCount()
+            return if total <= 0
+            return unless me.isValid()
+            Ext.Msg.show
+              title: btn.text + "?"
+              message: 'ระบบจะทำการบันทึกข้อมูลก่อนการดาวน์โหลด'
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (btn)->
+                if btn == 'yes'
+                  view = me.up 'quotation_view'
+                  view.save_quotation me, (success)->
+                    if success
+                      me.setLoading true
+                      me.rest_client.index 'download_details', {uuid: init.uuid},
+                        (res)->
+                          me.setLoading false
+                          if res.hash 
+                            DownloadBox.get res.hash, filename: 'download.xlsx', is_file: true
+                      ,
+                        ()->
+                          me.setLoading false
         ]
       ]
       columns: [

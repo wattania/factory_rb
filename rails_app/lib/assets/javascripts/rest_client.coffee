@@ -98,7 +98,13 @@ Ext.define 'RestClient',
 
 Ext.define 'DownloadBox',
   statics:
-    get: (hash, name, type)->
+    get: (hash, aopts)->
+      opts = {}
+      opts = aopts if Ext.isObject aopts
+
+      is_file = false
+      if aopts.is_file then is_file = true else is_file = false
+
       win = Ext.create 'Ext.window.Window',
         title: text_fa_icon 'refresh', 'Download ...', 'fa-spin'
         modal: true
@@ -106,7 +112,9 @@ Ext.define 'DownloadBox',
         height: 150
         listeners:
           show: ()->
-            url = Ext.urlAppend "/download/#{hash}", Ext.urlEncode({name: name, type: type})
+            url = "/download/#{hash}"
+            url = "/getfile/#{hash}" if is_file
+            url = Ext.urlAppend url, Ext.urlEncode({filename: opts.filename, type: opts.type})
             iframe = Ext.create "Ext.Component",
               xtype : "component"
               hidden: true

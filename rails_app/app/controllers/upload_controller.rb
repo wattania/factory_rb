@@ -14,7 +14,14 @@ class UploadController < ApplicationController
 
   def download
     FileUpload.where(file_hash: params[:id]).limit(1).each{|f|
-      send_data(f.get_file_data, {filename: params[:name], type: params[:type] })
+      send_data(f.get_file_data, {filename: params[:filename], type: params[:type] })
     }
+  end
+
+  def get_file
+    path = Rails.root.join('tmp', params[:id])
+    data = File.open(path, 'rb'){|f| f.read }
+    File.delete path
+    send_data(data, {filename: params[:filename], type: params[:type] })
   end
 end

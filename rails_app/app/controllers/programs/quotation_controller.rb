@@ -1,4 +1,11 @@
 class Programs::QuotationController < ResourceHelperController
+  def index_download_details result
+    n = TbQuotation.where(uuid: params[:uuid]).first 
+    unless n.blank?
+      result[:hash] = n.download_details_excel
+    end
+  end
+
   def item_group_stmt field
     it = TbQuotationItem.arel_table
     qa = TbQuotation.arel_table

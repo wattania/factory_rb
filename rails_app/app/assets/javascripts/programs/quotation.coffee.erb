@@ -4,6 +4,7 @@
 
 Ext.define 'QuotationView',
   extend: 'Ext.panel.Panel'
+  alias: 'widget.quotation_view'
   border: false
   layout: 'card'#type: 'vbox', align: 'stretch'
   listeners:
@@ -12,7 +13,12 @@ Ext.define 'QuotationView',
       btn_view   = me.down 'button[name=view]'
       chkbox_group_filter = me.down 'checkbox[name=group_by_quotation]'
 
-      chkbox_group_filter.on 'change', ()->
+      chkbox_group_filter.on 'change', (cmp)->
+        if cmp.getValue()
+          Ext.util.Cookies.set 'group_by_quotation', true
+        else
+          Ext.util.Cookies.clear 'group_by_quotation'
+
         me.grid.getStore().loadPage 1
 
       btn_create.on 'click', (btn)->
@@ -299,6 +305,7 @@ Ext.define 'QuotationView',
           name: 'group_by_quotation'
           boxLabel : 'Group By Quotation No.'
           inputValue: true
+          checked: if Ext.util.Cookies.get('group_by_quotation') then true else false
         ]
       ,
         xtype: 'pagingtoolbar'
