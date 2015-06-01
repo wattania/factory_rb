@@ -503,7 +503,7 @@ Ext.define 'QuotationCreate',
                         (res)->
                           me.setLoading false
                           if res.hash 
-                            DownloadBox.get res.hash, filename: 'download.xlsx', is_file: true
+                            DownloadBox.get res.hash, filename: 'download.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                       ,
                         ()->
                           me.setLoading false
