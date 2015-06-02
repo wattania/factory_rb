@@ -284,7 +284,7 @@ class Programs::QuotationController < ResourceHelperController
         record_id: row.id,
         uploaded: row.created_at.strftime('%d/%m/%Y %H:%M:%S')
         })
-    }
+    } 
   end
 
   def update_store_calculation_file result
@@ -375,9 +375,11 @@ class Programs::QuotationController < ResourceHelperController
   end
 
   def index_item_data result
-    stmt = TbQuotation.where(uuid: params[:uuid]).limit(0).first.items_stmt
-
-    rows = TbQuotationItem.find_by_sql(stmt)
-    result[:rows] = rows
+    n = TbQuotation.where(uuid: params[:uuid]).limit(0).first
+    unless n.blank?
+      result[:rows] = n.items_stmt
+    else
+      result[:rows] = []
+    end
   end
 end
