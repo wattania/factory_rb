@@ -19,7 +19,7 @@ Ext.define 'QuotationItemModel',
     unless Ext.isNumeric ret
       0 
     else
-      parseFloat(parseFloat(ret).toFixed(2))
+      parseFloat(parseFloat(ret).toFixed(4))
 
   cal_total_price: ()->
     ret = @get_price('part_price') + @get_price('package_price')
@@ -559,21 +559,25 @@ Ext.define 'QuotationCreate',
         dataIndex: 'part_price'
         align: 'right'
         width: 120
-        editor: xtype: 'x_number'
-        renderer: Ext.util.Format.numberRenderer('0,000.00')
+        editor: 
+          xtype: 'x_number'
+          format: '0,000.0000'
+        renderer: Ext.util.Format.numberRenderer('0,000.0000')
       ,
         text: 'Package Price'
         dataIndex: 'package_price'
         align: 'right'
         width: 120
-        editor: xtype: 'x_number'
-        renderer: Ext.util.Format.numberRenderer('0,000.00')
+        editor:
+          xtype: 'x_number'
+          format: '0,000.0000'
+        renderer: Ext.util.Format.numberRenderer('0,000.0000')
       ,
         text: 'Total Price'
         dataIndex: 'total_price'
         align: 'right'
         width: 120
-        renderer: Ext.util.Format.numberRenderer('0,000.00')
+        renderer: Ext.util.Format.numberRenderer('0,000.0000')
       ,
         text: 'Unit Price'
         dataIndex: 'ref_unit_price_uuid'

@@ -29,7 +29,7 @@ class TbQuotationItem < ActiveRecord::Base
   include FuncValidateHelper
   include FuncUpdateRecord
   
-  attr_accessor :ref_model_uuid_val, :ref_unit_price_uuid_val, :ref_part_name_uuid_val
+  attr_accessor :ref_model_uuid_val, :ref_unit_price_uuid_val
   #validates :ref_model_uuid, presence: true 
   validates :file_hash, presence: true 
 

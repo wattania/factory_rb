@@ -161,7 +161,7 @@ class Programs::QuotationController < ResourceHelperController
         m = yield item if block_given?
         #unless m.blank?
           [
-            "row_no", "item_code", "ref_model_uuid", "sub_code", "customer_code", "ref_part_name_uuid", 
+            "row_no", "item_code", "ref_model_uuid", "sub_code", "customer_code", "part_name", 
             "part_price", "package_price", "ref_unit_price_uuid", "po_reference", "remark"].each{|c|
               m[c.to_sym] = item[c]
             }

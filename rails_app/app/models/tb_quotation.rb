@@ -1,7 +1,6 @@
 class TbQuotation < ActiveRecord::Base
   def items_stmt
-    it = TbQuotationItem.arel_table
-    pt = RefPartName.arel_table
+    it = TbQuotationItem.arel_table 
     md = RefModel.arel_table
     ut = RefUnitPrice.arel_table
 
@@ -19,15 +18,13 @@ class TbQuotation < ActiveRecord::Base
       "ref_unit_price_uuid" => it[:ref_unit_price_uuid],
       "unit"          => ut[:display_name],
       "total_price"   => Arel.sql("(COALESCE(#{it.table_name}.part_price, 0) + COALESCE(#{it.table_name}.package_price, 0)) "),
-      "ref_part_name_uuid" => it[:ref_part_name_uuid],
-      "part"          => pt[:display_name],
+      "part_name"     => it[:part_name],
       "ref_model_uuid"=> it[:ref_model_uuid],
       "model"         => md[:display_name]
 
       })).where(it[:quotation_uuid].eq self.uuid)
     .order(Arel.sql("CASE #{it.table_name}.file_hash WHEN 'edit' THEN 0 ELSE 1 END"), it[:row_no])
-
-    RefPartName.join_me stmt, pt, it
+ 
     RefModel.join_me stmt, md, it
     RefUnitPrice.join_me stmt, ut, it
 
@@ -50,7 +47,7 @@ class TbQuotation < ActiveRecord::Base
     "model"         => {title: "Model"},
     "sub_code"      => {title: "Sub code", types: :string},
     "customer_code" => {title: "Customer Code"},
-    "part"          => {title: "Part name"},
+    "part_name"     => {title: "Part name"},
     "part_price"    => {title: "Part price"},
     "package_price" => {title: "Package price"},
     "unit"          => {title: "Unit price"},

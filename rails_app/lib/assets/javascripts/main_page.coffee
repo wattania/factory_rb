@@ -211,6 +211,7 @@ Ext.define 'MainPage',
               me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
           ,
             text: 'Part'
+            hidden: true
             program: 'part'
             handler: (btn)->
               btn.setDisabled true
