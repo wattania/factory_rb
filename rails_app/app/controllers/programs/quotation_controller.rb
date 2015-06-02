@@ -240,7 +240,7 @@ class Programs::QuotationController < ResourceHelperController
     n.created_by    = n.updated_by
     n.save! if result[:valid]
 
-    raise ActiveRecord::Rollback unless data_valid
+    raise ActiveRecord::Rollback unless result[:valid]
   end
 
   def destroy_approve_file result
