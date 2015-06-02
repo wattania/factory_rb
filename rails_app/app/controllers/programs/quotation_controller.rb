@@ -249,6 +249,14 @@ class Programs::QuotationController < ResourceHelperController
     TbQuotationCalculationFile.where(id: params[:id]).delete_all
   end
 
+  def destroy_quotation result
+    n = TbQuotation.find params[:id]
+    TbQuotation.where(id: params[:id]).delete_all
+    TbQuotationItem.where(quotation_uuid: n.uuid).delete_all
+    TbQuotationApproveFile.where(tb_quotation_uuid: n.uuid).delete_all
+    TbQuotationCalculationFile.where(tb_quotation_uuid: n.uuid).delete_all
+  end
+
   def update_remove_excel_items result
     records = params[:records]
     ori_recs = []

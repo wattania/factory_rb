@@ -1,4 +1,6 @@
 class TbQuotation < ActiveRecord::Base
+  validates :quotation_no, uniqueness: true
+  
   def items_stmt
     it = TbQuotationItem.arel_table 
     md = RefModel.arel_table

@@ -132,10 +132,36 @@ Ext.define 'QuotationView',
           ,
             xtype: 'button'
             text: text_fa_icon 'arrow-left', 'Back'
-            handler: ()->
+            handler: (btn)->
               main_page.restore_title()
               me.getLayout().setActiveItem 0
               me.remove n
+          ,
+            '->'
+          ,
+            xtype: 'button'
+            hidden: Ext.isEmpty(res.data.id)
+            text: text_fa_icon 'trash', 'Delete'
+            handler: (btn)->
+              Ext.Msg.show
+                title: "#{btn.text}?"
+                message: "Delete this Quotation"
+                buttons: Ext.Msg.YESNO
+                icon: Ext.Msg.QUESTION
+                fn: (ans)->
+                  if ans == 'yes'
+                    me.setLoading true
+                    me.rest_client.destroy res.data.id, 'quotation', {},
+                      (res)->
+                        me.setLoading false
+                        if res.success
+                          main_page.restore_title()
+                          me.getLayout().setActiveItem 0
+                          me.remove n
+                          me.grid.getStore().loadPage 1
+                    ,
+                      ()->
+                        me.setLoading false
           ]
         ]
         layout: 'fit'
