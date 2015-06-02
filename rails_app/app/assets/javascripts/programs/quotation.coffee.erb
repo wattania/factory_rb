@@ -15,7 +15,8 @@ Ext.define 'QuotationView',
 
       chkbox_group_filter.on 'change', (cmp)->
         if cmp.getValue()
-          Ext.util.Cookies.set 'group_by_quotation', true
+          expire = Ext.Date.add new Date(), Ext.Date.DAY, 7
+          Ext.util.Cookies.set 'group_by_quotation', true, expire
         else
           Ext.util.Cookies.clear 'group_by_quotation'
 

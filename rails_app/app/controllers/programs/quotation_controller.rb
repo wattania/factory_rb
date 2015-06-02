@@ -375,33 +375,7 @@ class Programs::QuotationController < ResourceHelperController
   end
 
   def index_item_data result
-    it = TbQuotationItem.arel_table
-    pt = RefPartName.arel_table
-    md = RefModel.arel_table
-    ut = RefUnitPrice.arel_table
-
-    stmt = it.project(project_stmt({
-      "row_no"        => it[:row_no],
-      "record_id"     => it[:id],
-      "file_hash"     => it[:file_hash],
-      "item_code"     => it[:item_code],
-      "sub_code"      => it[:sub_code],
-      "part_price"    => it[:part_price],
-      "po_reference"  => it[:po_reference],
-      "remark"        => it[:remark],
-      "package_price" => it[:package_price],
-      "customer_code" => it[:customer_code],
-      "ref_unit_price_uuid" => it[:ref_unit_price_uuid],
-      "total_price"   => Arel.sql("(COALESCE(#{it.table_name}.part_price, 0) + COALESCE(#{it.table_name}.package_price, 0)) "),
-      "ref_part_name_uuid" => it[:ref_part_name_uuid],
-      "ref_model_uuid"=> it[:ref_model_uuid]
-
-      })).where(it[:quotation_uuid].eq params[:uuid])
-    .order(Arel.sql("CASE #{it.table_name}.file_hash WHEN 'edit' THEN 0 ELSE 1 END"), it[:row_no])
-
-    RefPartName.join_me stmt, pt, it
-    RefModel.join_me stmt, md, it
-    RefUnitPrice.join_me stmt, ut, it
+    stmt = TbQuotation.where(uuid: params[:uuid]).limit(0).first.items_stmt
 
     rows = TbQuotationItem.find_by_sql(stmt)
     result[:rows] = rows
