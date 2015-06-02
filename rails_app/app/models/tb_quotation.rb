@@ -1,6 +1,6 @@
 class TbQuotation < ActiveRecord::Base
   validates :quotation_no, uniqueness: true
-  
+
   def items_stmt
     it = TbQuotationItem.arel_table 
     md = RefModel.arel_table
@@ -81,7 +81,7 @@ class TbQuotation < ActiveRecord::Base
           row.push item[name]
         }
         
-        sheet.add_row row, :types => [nil, nil, :string, :string]
+        sheet.add_row row, :types => [nil, nil, :string, :string, :string]
       }
     end
 
