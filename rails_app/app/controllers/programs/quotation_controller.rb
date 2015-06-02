@@ -30,7 +30,6 @@ class Programs::QuotationController < ResourceHelperController
     ft = RefFreightTerm.arel_table
     it = TbQuotationItem.arel_table
     ut = RefUnitPrice.arel_table
-    pt = RefPartName.arel_table
     md = RefModel.arel_table
 
     projects = {
@@ -51,7 +50,7 @@ class Programs::QuotationController < ResourceHelperController
       "total_price"   => Arel.sql("(COALESCE(#{it.table_name}.part_price, 0) + COALESCE(#{it.table_name}.package_price, 0)) "),
       "customer_code" => { field: it[:customer_code], filter: :like },
       "unit_price"    => { field: ut[:display_name], filter: :like },
-      "part_name"     => { field: pt[:display_name], filter: :like },
+      "part_name"     => { field: it[:part_name], filter: :like },
       "model"         => { field: md[:display_name], filter: :like },
       "total_approve_file"    => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationApproveFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
       "total_calculate_file"  => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationCalculationFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
@@ -66,7 +65,6 @@ class Programs::QuotationController < ResourceHelperController
     RefCustomer.left_join_me stmt, ct, qa
     RefFreightTerm.left_join_me stmt, ft, qa
 
-    RefPartName.left_join_me stmt, pt, it
     RefModel.left_join_me stmt, md, it
     RefUnitPrice.left_join_me stmt, ut, it
 
@@ -91,7 +89,7 @@ class Programs::QuotationController < ResourceHelperController
       all_sub_code  = item_group_stmt(it[:sub_code])
       all_cust_code = item_group_stmt(it[:customer_code])
       all_model     = item_group_stmt(md[:display_name]){|st| RefModel.left_join_me st, md, it }
-      all_part_name = item_group_stmt(pt[:display_name]){|st| RefPartName.left_join_me st, pt, it }
+      all_part_name = item_group_stmt(it[:part_name])
 
       projects = {
         "record_id"     => qa[:id],
@@ -341,7 +339,6 @@ class Programs::QuotationController < ResourceHelperController
     result[:data][:freight_terms] = RefFreightTerm.ref_dropdown
     result[:data][:unit_prices]   = RefUnitPrice.ref_dropdown
     result[:data][:models]        = RefModel.ref_dropdown
-    result[:data][:part_names]    = RefPartName.ref_dropdown
   end
 
   def update_quotation result

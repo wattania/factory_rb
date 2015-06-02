@@ -5,7 +5,7 @@ Ext.define 'QuotationItemModel',
     type: 'string', name: 'ref_model_uuid'
     type: 'string', name: 'record_id'
     type: 'string', name: 'sub_code'
-    type: 'string', name: 'ref_part_name_uuid'
+    type: 'string', name: 'part_name'
     type: 'string', name: 'customer_code'
     type: 'string', name: 'ref_unit_price_uuid'
     type: 'float',  name: 'package_price'
@@ -551,11 +551,9 @@ Ext.define 'QuotationCreate',
         editor: xtype: 'textfield'
       ,
         text: 'Part Name'
-        dataIndex: 'ref_part_name_uuid'
+        dataIndex: 'part_name'
         width: 100
-        editor: Ext.apply {xtype: 'combo'}, ref_conf(init.part_names)
-        renderer: (v)->
-          ref_render v, init.part_names
+        editor: xtype: 'textfield'
       ,
         text: 'Part Price'
         dataIndex: 'part_price'

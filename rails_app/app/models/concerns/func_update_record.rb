@@ -116,8 +116,19 @@ module FuncUpdateRecord
 
     if col_config
       if col_config[:ref_value]
-        col_config[:ref_value].constantize.where(display_name: value).limit(1).each{|row| self[name] = row.uuid }
+        ref_value = nil
         send "#{name}_val=", value
+        ref_model = col_config[:ref_value].constantize
+        ref_model.where(display_name: value).limit(1).each{|row| 
+          self[name] = row.uuid 
+          ref_value = row.uuid
+        }
+        if ref_value.blank? and !value.blank? and col_config[:auto_create]
+          __uuid = UUID.generate
+          ref_model.create! display_name: value, uuid: __uuid, created_by: 'system', updated_by: 'system'
+          self[name] = __uuid
+           
+        end
         
       else
         self[name] = value

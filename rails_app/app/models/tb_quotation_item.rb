@@ -17,7 +17,7 @@ class TbQuotationItem < ActiveRecord::Base
       {name: :ref_model_uuid,      text: 'Model',           cell_type: :string, validates: [:no_blank], ref_value: "RefModel" },
       {name: :sub_code,            text: 'Sub Code',        cell_type: :string, validates: [:no_blank] },
       {name: :customer_code,       text: 'Customer Code',   cell_type: :string, validates: [:no_blank] },
-      {name: :ref_part_name_uuid,  text: 'Part Name',       cell_type: :string, validates: [:no_blank], ref_value: "RefPartName" },
+      {name: :part_name,           text: 'Part Name',       cell_type: :string, validates: [] },
       {name: :part_price,          text: 'Part Price',      cell_type: :float,  validates: [:no_blank]},
       {name: :package_price,       text: 'Package Price',   cell_type: :float,  validates: [:no_blank] },
       {name: :ref_unit_price_uuid, text: 'Unit Price',      cell_type: :string, validates: [:no_blank], ref_value: "RefUnitPrice" },
