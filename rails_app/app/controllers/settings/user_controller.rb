@@ -18,6 +18,7 @@ class Settings::UserController < ResourceHelperController
       "last_name"   => ur[:last_name],
       "email"       => ur[:email],
       "last_sign_in_at" => ur[:last_sign_in_at],
+      "locked_at"   => ur[:locked_at],
       'locked_at_'  => XModelUtils.timestamp(ur[:locked_at]),
       'last_sign_in_at_'  => XModelUtils.timestamp(ur[:last_sign_in_at]),
       "is_admin"    => ur[:is_admin]
@@ -41,6 +42,9 @@ class Settings::UserController < ResourceHelperController
     rows.each{|row|
       tmp = JSON.parse row.to_json
       tmp["last_sign_in_at_"] = row.last_sign_in_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
+      unless row.locked_at.blank?
+        tmp["locked_at_"]       = row.locked_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
+      end
       result[:rows].push tmp
     }
   end
