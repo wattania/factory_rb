@@ -16,4 +16,8 @@ class User < ActiveRecord::Base
   validates :user_name, :email, uniqueness: true
 
   before_validation :func_set_uuid, on: :create
+
+  def get_timezone
+    self.timezone || "Asia/Bangkok"
+  end
 end

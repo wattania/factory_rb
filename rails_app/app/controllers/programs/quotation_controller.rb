@@ -1,4 +1,8 @@
 class Programs::QuotationController < ResourceHelperController
+  def index_export_all result
+    result[:hash] = TbQuotation.export_all
+  end
+
   def index_download_details result
     n = TbQuotation.where(uuid: params[:uuid]).first 
     unless n.blank?
@@ -6,121 +10,14 @@ class Programs::QuotationController < ResourceHelperController
     end
   end
 
-  def item_group_stmt field
-    it = TbQuotationItem.arel_table
-    qa = TbQuotation.arel_table
-    stmt = it.project(field).where(it[:quotation_uuid].eq qa[:uuid]).order(field)
-    stmt.distinct
-    
-    yield stmt if block_given?
-
-    stmt = Arel::Nodes::NamedFunction.new("ARRAY", [Arel.sql(stmt.to_sql)])
-  end
-
-  def item_total_stmt field 
-    it = TbQuotationItem.arel_table
-    qa = TbQuotation.arel_table
-    it.project(Arel::Nodes::NamedFunction.new("SUM", [field])).where(it[:quotation_uuid].eq qa[:uuid])
-  end
-
   def index_list result
-    qa = TbQuotation.arel_table
-    ct = RefCustomer.arel_table
-    ur = User.arel_table
-    ft = RefFreightTerm.arel_table
-    it = TbQuotationItem.arel_table
-    ut = RefUnitPrice.arel_table
-    md = RefModel.arel_table
-
-    projects = {
-      "record_id"     => qa[:id],
-      "uuid"          => qa[:uuid],
-      "quotation_no"  => {field: qa[:quotation_no], filter: :like },
-      "customer"      => {field: ct[:display_name], filter: :like },
-      "created_by"    => { field: XModelUtils.desc(ur[:first_name], ur[:last_name], ' '), filter: :like },
-      "issue_date"    => qa[:issue_date],
-      "freight_term"  => { field: ft[:display_name], filter: :like },
-      "exchange_rate" => qa[:exchange_rate],
-      "item_code"     => { field: it[:item_code], filter: :like },
-      "sub_code"      => { field: it[:sub_code], filter: :like },
-      "part_price"    => it[:part_price],
-      "po_reference"  => { field: it[:po_reference], filter: :like },
-      "remark"        => { field: it[:remark], filter: :like },
-      "package_price" => it[:package_price],
-      "total_price"   => Arel.sql("(COALESCE(#{it.table_name}.part_price, 0) + COALESCE(#{it.table_name}.package_price, 0)) "),
-      "customer_code" => { field: it[:customer_code], filter: :like },
-      "unit_price"    => { field: ut[:display_name], filter: :like },
-      "part_name"     => { field: it[:part_name], filter: :like },
-      "model"         => { field: md[:display_name], filter: :like },
-      "total_approve_file"    => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationApproveFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
-      "total_calculate_file"  => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationCalculationFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
-    }
-
-    stmt = qa.project(project_stmt projects)
-      .join(ur).on(ur[:uuid].eq(qa[:created_by]))
-      .join(it, Arel::Nodes::OuterJoin).on(it[:quotation_uuid].eq(qa[:uuid]))
-      .order(qa[:quotation_no])
-
-
-    RefCustomer.left_join_me stmt, ct, qa
-    RefFreightTerm.left_join_me stmt, ft, qa
-
-    RefModel.left_join_me stmt, md, it
-    RefUnitPrice.left_join_me stmt, ut, it
-
-    filter = params[:filter]
-    unless filter.blank?
-      filter_stmt stmt, JSON.parse(filter), projects do |k, v|
-        case k
-        when 'issue_date_from'
-          qa[:issue_date].gteq v 
-        when 'issue_date_to'
-          qa[:issue_date].lteq v 
-        end
-      end
+    filter = {}
+    unless params[:filter].blank?
+      filter = JSON.parse(params[:filter])
     end
 
-    
-
     if params[:group_quotation].to_s == "true"
-      ## unit price
-      all_unit_price_stmt = item_group_stmt(ut[:display_name]){|st| RefUnitPrice.left_join_me st, ut, it }
-      all_item_code = item_group_stmt(it[:item_code])
-      all_sub_code  = item_group_stmt(it[:sub_code])
-      all_cust_code = item_group_stmt(it[:customer_code])
-      all_model     = item_group_stmt(md[:display_name]){|st| RefModel.left_join_me st, md, it }
-      all_part_name = item_group_stmt(it[:part_name])
-
-      projects = {
-        "record_id"     => qa[:id],
-        "uuid"          => qa[:uuid],
-        "quotation_no"  => {field: qa[:quotation_no], filter: :like },
-        "customer"      => {field: ct[:display_name], filter: :like },
-        "created_by"    => { field: XModelUtils.desc(ur[:first_name], ur[:last_name], ' '), filter: :like },
-        "issue_date"    => qa[:issue_date],
-        "freight_term"  => ft[:display_name],
-        "exchange_rate" => qa[:exchange_rate],
-        "package_price" => item_total_stmt(it[:package_price]),
-        "part_price"    => item_total_stmt(it[:part_price]),
-        "item_code"     => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_item_code.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "model"         => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_model.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "sub_code"      => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_sub_code.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "part_name"     => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_part_name.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "customer_code" => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_cust_code.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "unit_price"    => Arel::Nodes::NamedFunction.new('ARRAY_TO_STRING', [Arel.sql(all_unit_price_stmt.to_sql), Arel::Nodes::Quoted.new(', ')]),
-        "total_approve_file"    => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationApproveFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
-        "total_calculate_file"  => Arel.sql("(SELECT COUNT(*) FROM #{TbQuotationCalculationFile.table_name} WHERE tb_quotation_uuid = #{TbQuotation.table_name}.uuid)"),
-      }
-
-      stmt = qa.project(project_stmt projects).where(qa[:quotation_no].in Arel.sql("(
-        SELECT distinct(quotation_no) FROM (#{stmt.to_sql}) AA )
-
-      ")).join(ur).on(ur[:uuid].eq(qa[:created_by]))
-        .order(qa[:quotation_no])
-
-      RefCustomer.left_join_me stmt, ct, qa
-      RefFreightTerm.left_join_me stmt, ft, qa
-
+      stmt = TbQuotation.index_list_stmt filter, true
       rows = []
       result_rows(stmt).each{|row|
         tmp = JSON.parse row.to_json
@@ -129,12 +26,11 @@ class Programs::QuotationController < ResourceHelperController
       }
       result[:rows] = rows
     else
+      stmt = TbQuotation.index_list_stmt filter
       result[:rows] = result_rows stmt 
     end
 
     result[:total] = result_total stmt  
-    
-
   end
 
   def create_add_item result
@@ -194,6 +90,14 @@ class Programs::QuotationController < ResourceHelperController
     n.issue_date            = params[:data][:issue_date]
     n.ref_freight_term_uuid = params[:data][:freight_term]
     n.exchange_rate         = params[:data][:exchange_rate]
+    if params[:data][:deleted_at]
+      if n.deleted_at.blank?
+        n.deleted_at            = DateTime.current 
+      end
+    else
+      n.deleted_at = nil
+    end
+    
     n.updated_by            = user.uuid
   
     edit_ids = [] 
@@ -283,12 +187,13 @@ class Programs::QuotationController < ResourceHelperController
 
   def show_file model, result
     result[:rows] = []
+    user = current_user
     model.where(tb_quotation_uuid: params[:id]).order(:file_name).each{|row|
       result[:rows].push({
         filename: row.file_name,
         hash: row.file_hash,
         record_id: row.id,
-        uploaded: row.created_at.strftime('%d/%m/%Y %H:%M:%S')
+        uploaded: row.created_at.in_time_zone(user.get_timezone).strftime("%d/%m/%Y %H:%M:%S")
         })
     } 
   end
@@ -333,7 +238,7 @@ class Programs::QuotationController < ResourceHelperController
     result[:data][:issue_date]            = n.issue_date
     result[:data][:ref_freight_term_uuid] = n.ref_freight_term_uuid
     result[:data][:exchange_rate]         = n.exchange_rate
-
+    result[:data][:deleted_at]            = n.deleted_at
     User.where(uuid: n.created_by).each{|row|
       result[:data][:created_by] = row.first_name.to_s + " " + row.last_name.to_s
     }

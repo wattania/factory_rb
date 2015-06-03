@@ -136,9 +136,7 @@ Ext.define 'QuotationView',
               main_page.restore_title()
               me.getLayout().setActiveItem 0
               me.remove n
-          ,
-            '->'
-          ,
+            ###
             xtype: 'button'
             hidden: Ext.isEmpty(res.data.id)
             text: text_fa_icon 'trash', 'Delete'
@@ -162,6 +160,7 @@ Ext.define 'QuotationView',
                     ,
                       ()->
                         me.setLoading false
+            ###
           ]
         ]
         layout: 'fit'
@@ -211,6 +210,9 @@ Ext.define 'QuotationView',
               me.grid.check_btns()
            
       cmps: [
+        text: 'Delete'
+        cmp: xtype: 'checkbox', name: 'deleted'
+      , 
         text: 'Quotation No.'
         cmp: xtype: 'x_text', name: 'quotation_no'  
       ,
@@ -273,6 +275,7 @@ Ext.define 'QuotationView',
         'customer_code',
         'unit_price',
         'part_name',
+        'deleted_at',
         'model'
       ]
       autoLoad: true
@@ -333,6 +336,29 @@ Ext.define 'QuotationView',
           boxLabel : 'Group By Quotation No.'
           inputValue: true
           checked: if Ext.util.Cookies.get('group_by_quotation') then true else false
+        ,
+          '|'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'file-excel-o', 'Export'
+          handler: (btn)->
+            Ext.Msg.show
+              title: btn.text + "?"
+              message: 'Export all quotation.'
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes' 
+                  
+                  me.setLoading true
+                  me.rest_client.index 'export_all', {},
+                    (res)->
+                      me.setLoading false
+                      if res.hash 
+                        DownloadBox.get res.hash, filename: 'export.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                  ,
+                    ()->
+                      me.setLoading false
         ]
       ,
         xtype: 'pagingtoolbar'
@@ -343,6 +369,16 @@ Ext.define 'QuotationView',
       columns: [
         xtype: 'rownumberer'
         width: 45
+      ,
+        text: text_fa_icon 'times', ''
+        align: 'center'
+        dataIndex: 'deleted_at'
+        width: 30
+        renderer: (v)->
+          if v 
+            "<font color=red><b>" + (text_fa_icon 'times', '') + "</b></font>"
+          else
+            "" 
       ,
         text: 'Quotation No.'
         dataIndex: 'quotation_no'

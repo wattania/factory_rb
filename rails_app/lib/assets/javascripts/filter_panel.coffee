@@ -17,6 +17,13 @@ Ext.define 'FilterPanel',
       width: me.getWidth() - 50
 
     cmp.xtype = 'x_text' if Ext.isEmpty config.xtype
+    switch cmp.xtype
+      when 'checkbox'
+        Ext.apply cmp, 
+          boxLabel: text
+          uncheckedValue: '0'
+          inputValue: '1'
+
     
     _p = Ext.create 'Ext.panel.Panel',
       border: false

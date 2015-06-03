@@ -17,6 +17,7 @@ class Settings::UserController < ResourceHelperController
       "first_name"  => ur[:first_name],
       "last_name"   => ur[:last_name],
       "email"       => ur[:email],
+      "last_sign_in_at" => ur[:last_sign_in_at],
       'locked_at_'  => XModelUtils.timestamp(ur[:locked_at]),
       'last_sign_in_at_'  => XModelUtils.timestamp(ur[:last_sign_in_at]),
       "is_admin"    => ur[:is_admin]
@@ -25,7 +26,7 @@ class Settings::UserController < ResourceHelperController
     stmt = ur.project(project_stmt projects).order(ur[:user_name])
     
     result[:total]  = result_total stmt
-    result[:rows]   = result_rows stmt, projects do |prop|
+    rows   = result_rows stmt, projects do |prop|
       case prop
       when "locked_at_"
         ur[:locked_at]
@@ -33,6 +34,15 @@ class Settings::UserController < ResourceHelperController
         ur[:last_sign_in_at]
       end
     end
+
+    user = current_user
+
+    result[:rows] = []
+    rows.each{|row|
+      tmp = JSON.parse row.to_json
+      tmp["last_sign_in_at_"] = row.last_sign_in_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
+      result[:rows].push tmp
+    }
   end
 
   def create_form_new result

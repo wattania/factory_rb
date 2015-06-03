@@ -1,68 +1,8 @@
 #encoding: UTF-8
 
 class ResourceHelperController < ApplicationController
-  def __filter_field k, v, projects
-    puts "__filter_field"
-    p k 
-    p v 
-    
-    if projects[k].is_a? Hash
-
-      field   = projects[k][:field]
-      filter  = projects[k][:filter]
-
-      if !field.blank? and !filter.blank?
-        case filter
-        when :like
-          ret_stmt = field.matches v 
-        when :gt 
-          ret_stmt = field.gt v
-        when :gteq
-          ret_stmt = field.gteq v
-        when :lt 
-          ret_stmt = field.lt v
-        when :lteq
-          ret_stmt = field.lteq v
-        end  
-      end
-    end
-
-  end
-
   def filter_stmt stmt, afilter, projects = {}
-    if afilter.is_a? Hash
-      afilter.each{|k, v|
-        next if v.blank?
-        if v.is_a? Array
-          _stmt = nil
-          v.each{|_v|
-            unless _v.blank?
-              ret_stmt = nil
-              ret_stmt = yield k, _v if block_given?
-              ret_stmt = __filter_field k, _v, projects if ret_stmt.blank?
-
-              unless ret_stmt.blank?
-                if _stmt.blank?
-                  _stmt = ret_stmt.clone 
-                else
-                  _stmt = _stmt.clone.or(ret_stmt)
-                end
-              end
-              
-            end
-          }
-          
-          stmt.where(_stmt.clone) unless _stmt.blank?
-           
-        else
-          ret_stmt = nil
-          ret_stmt = yield k, v if block_given?
-          ret_stmt = __filter_field k, v, projects if ret_stmt.blank?
-          stmt.where(ret_stmt.clone) unless ret_stmt.blank?
-
-        end
-      }
-    end
+    XModelUtils.filter_stmt stmt, afilter, projects
   end
 
   def __find_with_lock_version model, id, lock_version

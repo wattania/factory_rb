@@ -415,6 +415,7 @@ Ext.define 'ListViewPanelBase2',
       null
     else
       conf =  
+        layout: 'fit'
         height: filter_config.height + TOOLBAR_BUTTON_HEIGHT + FORM_LINE_SPACE
         do_show: (fn)->
           self = @

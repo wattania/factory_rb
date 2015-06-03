@@ -166,8 +166,7 @@ Ext.define 'FormHelper',
               width_ratio: col_span / totalCol
               items: [cmp_config]
               
-            if Ext.isObject cmp_config.panel 
-              Ext.apply panel, cmp_config.panel
+            if Ext.isObject(cmp_config.panel) then Ext.apply(panel, cmp_config.panel)
 
             formConfig.items.push panel
       
