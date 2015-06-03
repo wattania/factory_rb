@@ -1,0 +1,49 @@
+//= require list_view_panel_base2
+
+Ext.define 'Setting.import',
+  extend: 'MainView'
+  get_title: -> 'Settings > Import Excel Data'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_view: (initview, fn)->
+    fn
+      layout: 'vbox'
+      items:
+        xtype: 'form'
+        bodyPadding: 10
+        width: 500
+        items: [
+          xtype: 'hidden'
+          name: "authenticity_token"
+          value: document.getElementsByTagName("meta")[1].content
+        ,
+          xtype: 'filefield'
+          name: 'excel'
+          fieldLabel: text_fa_icon 'file-excel-o', ''
+          labelWidth: 20
+          labelSeparator: ''
+          width: 450
+          msgTarget: 'side'
+          allowBlank: false
+          anchor: '100%'
+          buttonText: "Select <b>CSV</b>..."
+
+        ,
+          xtype: 'button'
+          text: 'Begin Import!'
+          handler: (btn)->
+            form = btn.up('form').getForm()
+            if form.isValid()
+              form.submit
+                url: 'import_excel',
+                waitMsg: 'Importing your Excel...'
+                success: (fp, o)->
+                  console.log "--success--"
+                  console.log arguments
+                  Ext.Msg.alert 'Response', o.response.responseText
+                failure: (fp, o)->
+                  console.log "---failure---"
+                  Ext.Msg.alert 'Response', o.response.responseText
+                  console.log arguments
+              
+                
+        ]

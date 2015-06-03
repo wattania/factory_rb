@@ -8,6 +8,18 @@ module FuncModelUtils
       stmt.join(me, Arel::Nodes::OuterJoin).on(me[:uuid].eq field[(name.underscore + "_uuid").to_sym])
     end
 
+    def ref_get display_name, user_name = nil
+      rf = where(display_name: display_name).first
+      if rf.blank?
+        rf = new
+        rf.display_name = display_name
+        rf.uuid = UUID.generate
+        rf.created_by = user_name unless user_name.blank?
+        rf.updated_by = user_name unless user_name.blank?
+        rf.save!
+      end
+      rf
+    end
 
     def ref_dropdown
       ret = []
