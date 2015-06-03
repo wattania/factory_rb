@@ -294,7 +294,7 @@ Ext.define 'QuotationCreate',
         captions: ['Create Person']
         pos: [1, 6]
         readOnly: true
-        value: "#{USER_FIRST_NAME} #{USER_LAST_NAME}"
+        value: if init.id then init.created_by else "#{USER_FIRST_NAME} #{USER_LAST_NAME}"
       ,
         type: 'date'
         value: init.issue_date

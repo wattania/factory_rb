@@ -41,7 +41,9 @@ class Settings::UserController < ResourceHelperController
     result[:rows] = []
     rows.each{|row|
       tmp = JSON.parse row.to_json
-      tmp["last_sign_in_at_"] = row.last_sign_in_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
+      unless row.last_sign_in_at.blank?
+        tmp["last_sign_in_at_"] = row.last_sign_in_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
+      end
       unless row.locked_at.blank?
         tmp["locked_at_"]       = row.locked_at.in_time_zone(user.get_timezone).strftime "%d/%m/%Y %H:%M:%S"
       end
