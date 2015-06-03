@@ -351,7 +351,7 @@ Ext.define 'QuotationView',
                 if ans == 'yes' 
                   
                   me.setLoading true
-                  me.rest_client.index 'export_all', {},
+                  me.rest_client.create 'export_all', {},
                     (res)->
                       me.setLoading false
                       if res.hash 
@@ -359,6 +359,9 @@ Ext.define 'QuotationView',
                   ,
                     ()->
                       me.setLoading false
+                  ,
+                    jsonData:
+                      filter: me.filter_panel.get_filter_values()
         ]
       ,
         xtype: 'pagingtoolbar'

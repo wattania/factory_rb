@@ -1,6 +1,6 @@
 class Programs::QuotationController < ResourceHelperController
-  def index_export_all result
-    result[:hash] = TbQuotation.export_all
+  def create_export_all result
+    result[:hash] = TbQuotation.export_all params[:filter]
   end
 
   def index_download_details result

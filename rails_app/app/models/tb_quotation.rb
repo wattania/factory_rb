@@ -280,8 +280,8 @@ class TbQuotation < ActiveRecord::Base
 
   end
 
-  def self.export_all 
-    stmt = TbQuotation.index_list_stmt
+  def self.export_all filter = {}
+    stmt = TbQuotation.index_list_stmt filter
     conn = ActiveRecord::Base.connection
     datas = conn.execute stmt.to_sql
     TbQuotation.__export_excel datas, EXPORT_ALL_DETAILS, "Quotations" do |func, data|
