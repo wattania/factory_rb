@@ -41,8 +41,27 @@ Ext.define 'Setting.import',
                   console.log arguments
                   Ext.Msg.alert 'Response', o.response.responseText
                 failure: (fp, o)->
-                  console.log "---failure---"
-                  Ext.Msg.alert 'Response', o.response.responseText
+                  console.log "---failure---" 
+                  res = Ext.JSON.decode o.response.responseText
+
+                  Ext.create('Ext.window.Window',
+                      layout: 'fit'
+                      width: 600
+                      height: 400
+                      modal: true
+                      title: 'Response'
+                      items: 
+                        xtype: 'htmleditor'
+                        name: 'html_logger' 
+                        submitValue: false
+                        border: false
+                        value: res.error
+                        listeners:
+                          render: ()->
+                            @getToolbar().hide()
+                            @setReadOnly true
+                    ).show()
+
                   console.log arguments
               
                 

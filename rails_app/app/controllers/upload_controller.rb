@@ -82,22 +82,43 @@ IMPORT_CONFIG = {
       
     end
 
+    unknow_persons = []
+
     csv_data.each_with_index{|row, row_index|
       qa = TbQuotation.where(quotation_no: _c(:quotation_no, row)).first
       unless qa.blank?
         TbQuotationItem.where(quotation_uuid: qa.uuid).delete_all
       end
       TbQuotation.where(quotation_no: _c(:quotation_no, row)).delete_all
+
+      next if row_index == 0
+      ## check create person
+      persons = _c(:create_person, row).to_s.split " "
+      person = User.where(first_name: persons.first).where(last_name: persons.last).first
+      if person.blank?
+        unknow_persons.push "ไม่พบ user <b>[#{persons.join ' '}]</b> ในระบบ!<br><br><b>Hint</b><br>ให้สร้าง User โดย first name = #{persons.first} และ Last name = #{persons.last}"
+      end
     }
+
+    if unknow_persons.size > 0
+      msg = unknow_persons.uniq#.sort
+      raise msg.join("<br>-------<br>")
+    end
 
     csv_data.each_with_index{|row, row_index|
       next if row_index == 0  
 
+      ## check create person
+      persons = _c(:create_person, row).to_s.split " "
+      person = User.where(first_name: persons.first).where(last_name: persons.last).first
+      if person.blank?
+        raise "ไม่พบ user <b>[#{persons.join ' '}]</b> ในระบบ!<br><br><b>Hint</b><br>ให้สร้าง User โดย first name = #{persons.first} และ Last name = #{persons.last}"
+      end
       qa = TbQuotation.where(quotation_no: _c(:quotation_no, row)).first
       if qa.blank?
         qa = TbQuotation.new
         qa.uuid = UUID.generate
-        qa.created_by = user.uuid
+        qa.created_by = person.uuid
       end
  
       qa.quotation_no = _c(:quotation_no, row)
@@ -134,7 +155,7 @@ IMPORT_CONFIG = {
   end
 
   def import_excel
-    error = nil
+    error = "Success!"
     begin
       ActiveRecord::Base.transaction do
         __import params[:excel].tempfile.path
@@ -145,6 +166,6 @@ IMPORT_CONFIG = {
       puts e.backtrace
     end
 
-    render json: { error: error }
+    render json: {error: error}
   end
 end
