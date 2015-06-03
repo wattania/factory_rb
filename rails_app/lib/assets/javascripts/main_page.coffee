@@ -222,6 +222,12 @@ Ext.define 'MainPage',
             handler: (btn)->
               btn.setDisabled true
               me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+          ,
+            text: 'Import Data'
+            program: 'import'
+            handler: (btn)->
+              btn.setDisabled true
+              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
           ]
         ]
       ,
