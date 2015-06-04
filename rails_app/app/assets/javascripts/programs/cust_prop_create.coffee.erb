@@ -2,73 +2,154 @@ Ext.define 'CustPropCreate',
   extend: 'Ext.form.Panel'
   border: false
   layout: type: 'vbox', align: 'stretch'
+  listeners:
+    render: (me)->
+      number_request_qty = me.down 'x_number[name=request_qty]'
+      number_balance_qty = me.down 'x_number[name=balance_qty]'
+
+      cal_balance_qty =()->
+        total = me.grid.get_total_receive_qty()
+        request_qty = number_request_qty.getValue()
+        if Ext.isNumeric request_qty
+          request_qty = parseFloat(parseFloat(request_qty).toFixed(0))
+
+        number_balance_qty.setFormatValue request_qty - total
+
+      me.grid.on 'edit', (editor, context)-> 
+        context.record.commit()
+        if context.field in ['receive_qty']
+          cal_balance_qty()
+
+      number_request_qty.on 'blur', (cmp)-> cal_balance_qty()
+        
+
+
   initComponent: ->
     me = @
+    init = Ext.valueFrom @initialConfig.init, {}
+    console.log init
+
+    ref_combo =(data)->
+      xtype: 'combo'  
+      forceSelection: true
+      labelAlign: 'top'
+      store: Ext.create 'Ext.data.Store',
+        fields: ['uuid', 'display_name']
+        data: data
+      queryMode: 'local'
+      displayField: 'display_name'
+      valueField: 'uuid'
+
     form = FormHelper.layout
-      row: 2
+      row: 1
       col: 5
       items: [
+        xtype: 'hidden'
+        name: 'uuid'
+        value: 'uuid'
+      ,
         type: 'text'
         captions: ['Document No.']
         pos: [1, 1]
         name: 'quotation_no'
+        value: init.document_no
+        is_require: true
+        readOnly: if init.id then true else false
       ,
         type: 'text'
         captions: ['Description']
+        value: init.description
         pos: [1, 2]
         col_span: 2
         name: 'customer'
       ,
-        type: 'text'
-        captions: ['Request By']
-        pos: [1, 4]
+        Ext.apply ref_combo(init.request_bies),
+          pos: [1, 4]
+          fieldLabel: 'Request By'
+          name: 'ref_request_by_uuid'
+          value: init.ref_request_by_uuid
       ,
-        type: 'text'
-        captions: ['Department']
-        pos: [1, 5]
+        Ext.apply ref_combo(init.departments),
+          pos: [1, 5]
+          fieldLabel: 'Department'
+          name: 'ref_department_uuid'
+          value: init.ref_department_uuid
       ]
 
     @grid = Ext.create 'Ext.grid.Panel',
+      get_total_receive_qty: ()->
+        ret = 0
+        @store.each (record)->
+          v = record.get 'receive_qty'
+          if Ext.isNumeric v 
+            ret += parseFloat(parseFloat(v).toFixed(0))
+        ret
+
       plugins:
         ptype: 'cellediting'
         clicksToEdit: 1
       store: Ext.create 'Ext.data.Store',
-        fields: ['a']
-        data: [ 1, 2, 3, 4, 5
+        fields: [
+          {type: 'date', name: 'tool_receive_date', format: '%Y-%m-%d'},
+          'invoice_no', 
+          {type: 'integer', name: 'receive_qty'}
         ]
+        data: init.grid
       columns: [
         xtype: 'rownumberer'
         width: 45
       ,
         text: text_fa_icon 'calendar', 'Tool Receive Date'
+        dataIndex: 'tool_receive_date'
         flex: 1
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
         editor:
-          xtype: 'datefield'
+          xtype: 'x_date'
+
       ,
         text: text_fa_icon 'edit', 'Invoice No.'
+        dataIndex: 'invoice_no'
         flex: 1
         editor:
           xtype: 'textfield'
       ,
         text: text_fa_icon 'edit', 'Receive QTY'
+        dataIndex: 'receive_qty'
+        align: 'right'
+        renderer: (v)->
+          if Ext.isNumeric v 
+            vv = parseFloat(parseFloat(v).toFixed(0))
+            if vv == 0 
+              ""
+            else
+              Ext.util.Format.number vv, '0,000'
+          else
+            ""
+
         flex: 1
         editor:
           xtype: 'x_number' 
+          format: '0,000'
       ]
     
     form_center = FormHelper.layout
-      row: 6
+      row: 5
       col: 5
       items: [
         type: 'number'
         pos: [1, 1]
         captions: ['Request QTY']
+        name: 'request_qty'
+        format: '0,000'
         tabIndex: 1
       ,
-        type: 'text'
-        pos: [2, 1]
-        captions: ['Unit']
-        tabIndex: 2
+        
+        Ext.apply ref_combo(init.units),
+          pos: [2, 1]
+          tabIndex: 2
+          fieldLabel: 'Unit'
+          name: 'ref_unit_uuid'
+          value: init.ref_unit_uuid
       ,
         type: 'date'
         pos: [3, 1]
@@ -83,12 +164,7 @@ Ext.define 'CustPropCreate',
         type: 'text'
         pos: [5, 1]
         captions: ['Status']
-        tabIndex: 5
-      ,
-        type: 'text'
-        pos: [6, 1]
-        captions: ['Doc.Approved']
-        tabIndex: 6
+        tabIndex: 5  
       ,
         xtype: 'panel'
         tabIndex: 7
@@ -99,11 +175,7 @@ Ext.define 'CustPropCreate',
         row_span: 5
         layout: 'fit'
         items: @grid
-      ,
-        type: 'number'
-        pos: [6, 3]
-        captions: ['Balance QTY']
-        readOnly: true
+        
       ]
  
 
@@ -115,13 +187,50 @@ Ext.define 'CustPropCreate',
       form_center
     ,
       FormHelper.layout
-        row: 2
+        row: 4
         col: 5
         items: [
+          xtype: 'fieldset'
+          row_span: 2
+          col_span: 2
+          title: 'Doc.Approved'
+          layout: type: 'vbox', align: 'stretch'
+          pos: [1, 1]
+          items: [
+            xtype: 'textfield'
+            readOnly: true
+            name: 'doc_approved_file_name'
+            margin: '0 5 5 0'
+          ,
+            layout: 'hbox'
+            border: false
+            items: [
+              xtype: 'upload5'
+              width: 30
+              extra_params: uuid: init.uuid
+              text: text_fa_icon 'upload', ''
+              callback: (err, data)->
+            ,
+              xtype: 'button'
+              text: text_fa_icon 'download', ''
+            ,
+              xtype: 'button'
+              text: text_fa_icon 'trash', ''
+            ]
+          ]
+        ,
           type: 'text'
           col_span: 2
           captions: ['Remark']
-          pos: [1, 1]
+          pos: [3, 1]
+          name: 'remark'
+        ,
+          type: 'number'
+          pos: [1, 3]
+          captions: ['Balance QTY']
+          format: '0,000'
+          name: 'balance_qty'
+          readOnly: true
         ]
     ]
     @callParent arguments

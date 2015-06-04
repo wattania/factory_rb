@@ -5,7 +5,7 @@ Rails.application.routes.draw do
   post '/upload' => 'upload#file_upload'
 
   namespace :settings do
-    resources :user, :customer, :freight_term, :model, :unit_price, :part
+    resources :user, :customer, :freight_term, :model, :unit_price, :part, :unit, :department, :request_by
   end
 
   namespace :programs do 

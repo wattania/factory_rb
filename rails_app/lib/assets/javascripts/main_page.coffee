@@ -223,7 +223,25 @@ Ext.define 'MainPage',
               btn.setDisabled true
               me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
           ,
-            text: 'Import Data'
+            text: 'Department'
+            program: 'department'
+            handler: (btn)->
+              btn.setDisabled true
+              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+          ,
+            text: 'Request By'
+            program: 'request_by'
+            handler: (btn)->
+              btn.setDisabled true
+              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+          ,
+            text: 'Unit'
+            program: 'unit'
+            handler: (btn)->
+              btn.setDisabled true
+              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+          ,
+            text: '<b>Import Data</b>'
             program: 'import'
             handler: (btn)->
               btn.setDisabled true
