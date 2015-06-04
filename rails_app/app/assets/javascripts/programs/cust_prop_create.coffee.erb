@@ -40,24 +40,24 @@ Ext.define 'CustPropCreate',
         xtype: 'rownumberer'
         width: 45
       ,
-        text: 'Tool Receive'
+        text: text_fa_icon 'calendar', 'Tool Receive Date'
+        flex: 1
+        editor:
+          xtype: 'datefield'
+      ,
+        text: text_fa_icon 'edit', 'Invoice No.'
         flex: 1
         editor:
           xtype: 'textfield'
       ,
-        text: 'Invoice No.'
-        flex: 1
-        editor:
-          xtype: 'textfield'
-      ,
-        text: 'Receive QTY'
+        text: text_fa_icon 'edit', 'Receive QTY'
         flex: 1
         editor:
           xtype: 'x_number' 
       ]
     
     form_center = FormHelper.layout
-      row: 7  
+      row: 6
       col: 5
       items: [
         type: 'number'
@@ -108,7 +108,9 @@ Ext.define 'CustPropCreate',
  
 
     @items = [ 
-      form 
+      layout: 'fit'
+      border: false
+      items: form 
     ,
       form_center
     ,

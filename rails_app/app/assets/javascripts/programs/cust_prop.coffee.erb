@@ -1,5 +1,6 @@
 //= require programs/cust_prop_search
 //= require programs/cust_prop_create
+//= require filter_panel
 
 Ext.define 'CustPropView',
   extend: 'Ext.panel.Panel'
@@ -54,13 +55,60 @@ Ext.define 'CustPropView',
 
   initComponent: ->
 
-    @filter = Ext.create 'CustPropSearch'
+    @filter_panel = Ext.create 'FilterPanel',
+      region: 'east'
+      listeners:
+        search: (c, values)->
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
+
+        clear: (c)->
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
+           
+      cmps: [
+        text: 'Document No.'
+        cmp: xtype: 'checkbox', name: 'document_no'
+      , 
+        text: 'Description'
+        cmp: xtype: 'x_text', name: 'discription'  
+      ,
+        text: 'Request By'
+        cmp: xtype: 'x_text', name: 'request_by'
+      ,
+        text: 'Department'
+        cmp: xtype: 'x_text', name: 'department'
+      ,
+        text: 'Unit'
+        cmp: xtype: 'x_text', name: 'unit'
+      ,
+        text: 'CMD Issue Date'
+        cmp: xtype: 'x_date_range', name: 'cmd_issue_date'
+      ,
+        text: 'Require Date'
+        cmp: xtype: 'x_date_range', name: 'require_date'
+      ,
+        text: 'Status'
+        cmp: xtype: 'x_text', name: 'status'
+      ,
+        text: 'Tool Receive Date'
+        cmp: xtype: 'x_date_range', name: 'tool_receive_date'
+      ,
+        text: 'Invoice No.'
+        cmp: name: 'invoice_no'
+      ,
+        text: 'Remark'
+        cmp: name: 'remark'
+      ]
 
     store = Ext.create 'Ext.data.Store',
       fields: ['a', 'b']
 
 
     grid = Ext.create 'Ext.grid.Panel',
+      region: 'center'
       flex: 1
       store: store 
       dockedItems: [
@@ -119,27 +167,11 @@ Ext.define 'CustPropView',
 
     @items = [
       border: false
-      layout: type: 'vbox', align: 'stretch'
+      layout: type: 'border'
       items: [
-        xtype: 'panel'
-        border: false
-        dockedItems: [
-          xtype: 'toolbar'
-          docked: 'top'
-          items: [
-            xtype: 'button'
-            text: text_fa_icon 'search', 'Search'
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'eraser', 'Clear', 'fa-flip-horizontal'
-          ,
-            xtype: 'button'
-            text: text_fa_icon 'file-excel-o', 'Export'
-          ]
-        ]
-        items: @filter 
-      ,
         grid 
+      ,
+        @filter_panel
       ]
     ]
 
