@@ -1,5 +1,26 @@
 
 class FileUpload < ActiveRecord::Base
+  def self.remove_junk_file
+    up = arel_table
+
+    af = TbQuotationApproveFile.arel_table
+    cf = TbQuotationCalculationFile.arel_table
+    it = TbQuotationItem.arel_table
+  
+    models = [af, cf, it]
+    stmt = up.project([up[:file_hash]]).where(up[:created_at].lt(Date.current - 2.day))
+
+    models.each{|mm| stmt.join(mm, Arel::Nodes::OuterJoin).on(mm[:file_hash].eq up[:file_hash]) }
+
+    stmt.distinct
+    used_hashs = []  
+    find_by_sql(stmt).each{|row| used_hashs.push row.file_hash }
+    used_hashs.uniq
+
+    where.not(file_hash: used_hashs).delete_all
+    FileUploadMetum.where.not(file_hash: used_hashs).delete_all
+  end
+
   def self.file_upload_path
     Rails.root.join 'files'
   end

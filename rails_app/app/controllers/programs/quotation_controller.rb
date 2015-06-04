@@ -11,6 +11,8 @@ class Programs::QuotationController < ResourceHelperController
   end
 
   def index_list result
+    FileUpload.remove_junk_file
+    
     filter = {}
     unless params[:filter].blank?
       filter = JSON.parse(params[:filter])

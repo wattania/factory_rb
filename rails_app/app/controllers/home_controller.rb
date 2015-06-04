@@ -2,6 +2,8 @@ class HomeController < ApplicationController
   before_filter :authenticate_user!
 
   def index 
+    FileUpload.remove_junk_file
+    
     user = current_user 
     @firstname  = user.first_name
     @lastname   = user.last_name
