@@ -13,45 +13,49 @@ Ext.define 'CustPropView',
 
       btn_create.on 'click', (btn)->
         me.setLoading true
-        Ext.defer ()->
-          form = Ext.create 'CustPropCreate',
-            flex: 1
+        me.rest_client.create 'form', {},
+          (res)->
+            me.setLoading false
+            if res.success
+              form = Ext.create 'CustPropCreate',
+                flex: 1
+                init: Ext.valueFrom(res.data, {})
 
-          panel = Ext.create 'Ext.panel.Panel',
-            listeners:
-              render: ()->
-                btn_back = panel.down 'button[name=back]'
+              panel = Ext.create 'Ext.panel.Panel',
+                listeners:
+                  render: ()->
+                    btn_back = panel.down 'button[name=back]'
 
-                btn_back.on 'click', ()->
-                  me.setActiveItem 0
-                  me.remove me.items.getAt 1
+                    btn_back.on 'click', ()->
+                      me.setActiveItem 0
+                      me.remove me.items.getAt 1
 
-            dockedItems: [
-              xtype: 'toolbar'
-              dock: 'top'
-              items: [
-                xtype: 'button'
-                text: text_fa_icon 'save', 'Save'
-              ,
-                xtype: 'button'
-                text: text_fa_icon 'trash', 'Delete'
-                hidden: true
-              ,
-                xtype: 'button'
-                text: text_fa_icon 'arrow-left', 'Back'
-                name: 'back'
-              ]
-            ]
-            layout: type: 'vbox', align: 'stretch'
-            autoScroll: true
-            items: [
-              form
-            ]
-          me.add panel
-          me.getLayout().setActiveItem panel
-          me.setLoading false
-        , 100
+                dockedItems: [
+                  xtype: 'toolbar'
+                  dock: 'top'
+                  items: [
+                    xtype: 'button'
+                    text: text_fa_icon 'save', 'Save'
+                  ,
+                    xtype: 'button'
+                    text: text_fa_icon 'trash', 'Delete'
+                    hidden: true
+                  ,
+                    xtype: 'button'
+                    text: text_fa_icon 'arrow-left', 'Back'
+                    name: 'back'
+                  ]
+                ]
+                layout: type: 'vbox', align: 'stretch'
+                autoScroll: true
+                items: form 
 
+              me.add panel
+              me.getLayout().setActiveItem panel
+
+        ,
+          ()->
+            me.setLoading false
 
   initComponent: ->
 
@@ -182,4 +186,5 @@ Ext.define 'Program.cust_prop',
   get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
   get_title: -> 'Customer Properties'
   get_view: (init, fn)->
-    fn Ext.create 'CustPropView'
+    me = @
+    fn Ext.create 'CustPropView', rest_client: me.rest_client
