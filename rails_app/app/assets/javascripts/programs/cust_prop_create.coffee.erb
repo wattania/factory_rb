@@ -9,15 +9,15 @@ Ext.define 'CustPropCreate',
     index = 0
     @grid.getStore().each (record)->
       index += 1
-      tmp = {}
-      
-      tmp["tool_receive_date_0#{index}"] = record.get('tool_receive_date')
-      tmp["invoice_no_0#{index}"] = record.get('invoice_no')
-      tmp["receive_qty_0#{index}"] = record.get('receive_qty')
-
-      ret.grid.push tmp
-
+      ret.grid.push
+        id: record.get 'record_id'
+        tool_receive_date: record.get 'tool_receive_date'
+        invoice_no: record.get 'invoice_no'
+        receive_qty: record.get 'receive_qty'
+        row_no: index
+    
     ret
+
   listeners:
     render: (me)->
       number_request_qty = me.down 'x_number[name=request_qty]'
@@ -60,9 +60,13 @@ Ext.define 'CustPropCreate',
       row: 1
       col: 5
       items: [
-        xtype: 'hidden'
-        name: 'uuid'
-        value: init.uuid
+        xtype: 'hidden', name: 'uuid', value: init.uuid
+      ,
+        xtype: 'hidden', name: 'doc_approved_file_hash', value: init.doc_approved_file_hash
+      ,
+        xtype: 'hidden', name: 'id', value: init.id
+      ,
+        xtype: 'hidden', name: 'lock_version', value: init.lock_version
       ,
         type: 'text'
         captions: ['Document No.']
@@ -106,6 +110,7 @@ Ext.define 'CustPropCreate',
         clicksToEdit: 1
       store: Ext.create 'Ext.data.Store',
         fields: [
+          'record_id',
           {type: 'date', name: 'tool_receive_date', format: '%Y-%m-%d'},
           'invoice_no', 
           {type: 'integer', name: 'receive_qty'}
@@ -117,7 +122,8 @@ Ext.define 'CustPropCreate',
       ,
         text: text_fa_icon 'calendar', 'Tool Receive Date'
         dataIndex: 'tool_receive_date'
-        flex: 1
+        width: 120
+        align: 'center'
         renderer: Ext.util.Format.dateRenderer('d/m/Y')
         editor:
           xtype: 'x_date'
@@ -198,6 +204,13 @@ Ext.define 'CustPropCreate',
         row_span: 5
         layout: 'fit'
         items: @grid
+      ,
+        type: 'checkbox'
+        pos: [1, 4]
+        hidden: if init.id then false else true
+        captions: ["<font color=red><b>Delete</b></font>"]
+        name: 'deleted_at'
+        checked: if init.deleted_at then true else false
         
       ]
  
@@ -223,6 +236,7 @@ Ext.define 'CustPropCreate',
             xtype: 'textfield'
             readOnly: true
             name: 'doc_approved_file_name'
+            value: init.doc_approved_file_name
             margin: '0 5 5 0'
           ,
             layout: 'hbox'
@@ -233,12 +247,38 @@ Ext.define 'CustPropCreate',
               extra_params: uuid: init.uuid
               text: text_fa_icon 'upload', ''
               callback: (err, data)->
+                if err 
+                else
+                  me.down('hidden[name=doc_approved_file_hash]').setValue data.hash
+                  me.down('textfield[name=doc_approved_file_name]').setValue data.filename
             ,
               xtype: 'button'
               text: text_fa_icon 'download', ''
+              handler: (btn)->
+                hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
+                filename = me.down('textfield[name=doc_approved_file_name]').getValue()
+                return if Ext.isEmpty hash
+                DownloadBox.get hash, {filename: filename}
             ,
               xtype: 'button'
-              text: text_fa_icon 'trash', ''
+              text: text_fa_icon 'times', ''
+              handler: (btn)->
+                hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
+                return if Ext.isEmpty hash
+
+                me.down('hidden[name=doc_approved_file_hash]').setValue null
+                me.down('textfield[name=doc_approved_file_name]').setValue null
+                ###
+                Ext.Msg.show
+                  title: 'Remove?'
+                  message: "Remove Doc.Approved"
+                  buttons: Ext.Msg.YESNO
+                  icon: Ext.Msg.QUESTION
+                  fn: (ans)->
+                    if ans == 'yes'
+                      me.down('hidden[name=doc_approved_file_hash]').setValue null
+                      me.down('textfield[name=doc_approved_file_name]').setValue null
+                ###
             ]
           ]
         ,
@@ -246,6 +286,7 @@ Ext.define 'CustPropCreate',
           col_span: 2
           captions: ['Remark']
           pos: [3, 1]
+          value: init.remark
           name: 'remark'
         ,
           type: 'number'
@@ -253,6 +294,7 @@ Ext.define 'CustPropCreate',
           captions: ['Balance QTY']
           format: '0,000'
           name: 'balance_qty'
+          value: init.balance_qty
           readOnly: true
         ]
     ]

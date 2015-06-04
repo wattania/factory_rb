@@ -50,6 +50,7 @@ Ext.define 'FilterPanel',
           panel: panel
           handler: (btn)->
             me.filter_form.remove panel
+            me.fireEvent 'search', me, me.filter_form.getValues()
         ,
           flex: 1
           border: false 

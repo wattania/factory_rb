@@ -15,30 +15,13 @@ class CreateTbCustomerProperties < ActiveRecord::Migration
       t.string  :doc_approved_file_name
       t.string  :doc_approved_file_hash
 
-      t.date    :tool_receive_date_01
-      t.string  :invoice_no_01
-      t.integer :receive_qty_01
-
-      t.date    :tool_receive_date_02
-      t.string  :invoice_no_02
-      t.integer :receive_qty_02
-
-      t.date    :tool_receive_date_03
-      t.string  :invoice_no_03
-      t.integer :receive_qty_03
-
-      t.date    :tool_receive_date_04
-      t.string  :invoice_no_04
-      t.integer :receive_qty_04
-
-      t.date    :tool_receive_date_05
-      t.string  :invoice_no_05
-      t.integer :receive_qty_05 
+      t.text    :remark
 
       t.integer  :lock_version, default: 0, null: false
       t.string   :created_by, null: false
       t.string   :updated_by, null: false
       t.datetime :deleted_at
+      
       t.timestamps null: false
     end
 

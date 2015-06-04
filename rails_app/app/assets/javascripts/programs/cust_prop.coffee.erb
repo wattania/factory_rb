@@ -8,8 +8,46 @@ Ext.define 'CustPropView',
   layout: 'card'
   listeners:
     render: (me)->
+      chkbox_group_filter = me.down 'checkbox[name=group_by_document_no]'
       btn_serch = me.down 'button[name=search]'
       btn_create = me.down 'button[name=create]'
+      btn_view  = me.down 'button[name=view]'
+
+      me.grid.on 'itemdblclick', ->
+        view_btn = @down 'button[name=view]'
+        view_btn.fireEvent 'click', view_btn
+
+      me.grid.on 'selectionchange', -> me.grid.check_btns()
+      me.grid.getStore().on 'load', ()-> me.grid.check_btns()
+      me.grid.getStore().on 'beforeload', (store)->
+        values = me.filter_panel.get_filter_values()
+        Ext.apply store.getProxy().extraParams = {method: 'list', group_by_document_no: chkbox_group_filter.getValue()}
+        if Object.keys(values).length > 0
+          Ext.apply store.getProxy().extraParams, 
+            filter: Ext.JSON.encode values
+        true
+
+      chkbox_group_filter.on 'change', (cmp)->
+        if cmp.getValue()
+          expire = Ext.Date.add new Date(), Ext.Date.DAY, 7
+          Ext.util.Cookies.set cmp.name, true, expire
+        else
+          Ext.util.Cookies.clear cmp.name
+
+        me.grid.getStore().loadPage 1
+
+      btn_view.on 'click', ()->
+        selects = me.grid.getSelectionModel().getSelection()
+        return if selects.length <= 0
+        me.setLoading true
+        me.rest_client.show (selects[0].get 'record_id'), 'form', {},
+          (res)->
+            me.setLoading false
+            if res.success
+              me.show_form res.data
+        ,
+          ()->
+            me.setLoading false
 
       btn_create.on 'click', ()->
         me.setLoading true
@@ -17,77 +55,87 @@ Ext.define 'CustPropView',
           (res)->
             me.setLoading false
             if res.success
-              form = Ext.create 'CustPropCreate',
-                flex: 1
-                init: Ext.valueFrom(res.data, {})
-
-              panel = Ext.create 'Ext.panel.Panel',
-                listeners:
-                  render: ()->
-                    btn_back = panel.down 'button[name=back]'
-
-                    btn_back.on 'click', ()->
-                      me.setActiveItem 0
-                      me.remove me.items.getAt 1
-
-                dockedItems: [
-                  xtype: 'toolbar'
-                  dock: 'top'
-                  items: [
-                    xtype: 'button'
-                    text: text_fa_icon 'save', 'Save'
-                    handler: (btn)->
-                      return unless form.isValid()
-                      values = form.getValues()
-                      me.setLoading true
-                      if Ext.isEmpty values.id
-                        me.rest_client.create 'data', {},
-                          (res)->
-                            me.setLoading false
-                            if res.success
-                              me.setActiveItem 0
-                              me.remove me.items.getAt 1
-                              me.grid.loadPage 1
-                        ,
-                          ()->
-                            me.setLoading false
-                        ,
-                          jsonData:
-                            data: values
-                      else
-                        me.rest_client.update values.id, 'data', {},
-                          (res)->
-                            me.setLoading false
-                            if res.success
-                              me.setActiveItem 0
-                              me.remove me.items.getAt 1
-                              me.grid.loadPage 1
-                        ,
-                          ()->
-                            me.setLoading false
-                        ,
-                          jsonData:
-                            data: values
-
-                  ,
-                    xtype: 'button'
-                    text: text_fa_icon 'arrow-left', 'Back'
-                    name: 'back'
-                  ]
-                ]
-                layout: type: 'vbox', align: 'stretch'
-                autoScroll: true
-                items: form 
-
-              me.add panel
-              me.getLayout().setActiveItem panel
-
+              me.show_form res.data
         ,
           ()->
             me.setLoading false
+  show_form: (init)->
+    me = @
+
+    form = Ext.create 'CustPropCreate',
+      flex: 1
+      init: Ext.valueFrom(init, {})
+
+    panel = Ext.create 'Ext.panel.Panel',
+      listeners:
+        render: ()->
+          btn_back = panel.down 'button[name=back]'
+
+          btn_back.on 'click', ()->
+            me.setActiveItem 0
+            me.remove me.items.getAt 1
+
+      dockedItems: [
+        xtype: 'toolbar'
+        dock: 'top'
+        items: [
+          xtype: 'button'
+          text: text_fa_icon 'save', 'Save'
+          handler: (btn)->
+            return unless form.isValid()
+            Ext.Msg.show
+              title:'Save?'
+              message: "Save Customer Property"
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes'
+                  values = form.getValues()
+                  me.setLoading true
+                  if Ext.isEmpty values.id
+                    me.rest_client.create 'data', {},
+                      (res)->
+                        me.setLoading false
+                        if res.success
+                          me.setActiveItem 0
+                          me.remove me.items.getAt 1
+                          me.grid.getStore().loadPage 1
+                    ,
+                      ()->
+                        me.setLoading false
+                    ,
+                      jsonData:
+                        data: values
+                  else
+                    me.rest_client.update values.id, 'data', {},
+                      (res)->
+                        me.setLoading false
+                        if res.success
+                          me.setActiveItem 0
+                          me.remove me.items.getAt 1
+                          me.grid.getStore().loadPage 1
+                    ,
+                      ()->
+                        me.setLoading false
+                    ,
+                      jsonData:
+                        data: values
+
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'arrow-left', 'Back'
+          name: 'back'
+        ]
+      ]
+      layout: type: 'vbox', align: 'stretch'
+      autoScroll: true
+      items: form 
+
+    me.add panel
+    me.getLayout().setActiveItem panel
 
   initComponent: ->
-
+    me = @
     @filter_panel = Ext.create 'FilterPanel',
       region: 'east'
       listeners:
@@ -102,8 +150,11 @@ Ext.define 'CustPropView',
               me.grid.check_btns()
            
       cmps: [
+        text: 'Delete'
+        cmp: xtype: 'checkbox', name: 'deleted'
+      ,
         text: 'Document No.'
-        cmp: xtype: 'checkbox', name: 'document_no'
+        cmp: xtype: 'x_text', name: 'document_no'
       , 
         text: 'Description'
         cmp: xtype: 'x_text', name: 'discription'  
@@ -137,13 +188,47 @@ Ext.define 'CustPropView',
       ]
 
     store = Ext.create 'Ext.data.Store',
-      fields: ['a', 'b']
+      fields: [
+        'record_id', 'lock_version', 'document_no', 'uuid', 'description', 'request_by', 'department', 'request_qty', 'unit', ''
+        {type: 'date', name: 'cmd_issue_date', dateFormat: "Y-m-d"}, 
+        {type: 'date', name: 'require_date', dateFormat: "Y-m-d"}, 
+        {type: 'date', name: 'tool_receive_date', dateFormat: "Y-m-d"}, 
+        'status', 'invoice_no',
+        {type: 'integer', name: 'receive_qty'},
+        {type: 'integer', name: 'balance_qty'},
+        'remark', 'doc_approved_file_name', 'deleted_at'
+      ]
+      autoLoad: true
+
+      proxy:
+        type: 'ajax'
+        url: me.rest_client.url
+        extraParams:
+          method: 'list'
+        reader:
+          type: 'json'
+          rootProperty: 'rows'
+          totalProperty: 'total'
+        listeners:
+          exception: (request, result)->
+            try
+              response = Ext.JSON.decode result.responseText 
+              unless response.success
+                Ext.create('ErrorBox',
+                  message: response.message
+                  backtrace: response.backtrace
+                  ).show()
+            catch e
+              Ext.Msg.alert '', result.responseText
 
 
     @grid = Ext.create 'Ext.grid.Panel',
       region: 'center'
       flex: 1
       store: store 
+      check_btns: ()->
+        view_btn = @down 'button[name=view]'
+        view_btn.setDisabled !(@getSelectionModel().getSelection().length > 0)
       dockedItems: [
         xtype: 'pagingtoolbar'
         store: store
@@ -158,44 +243,115 @@ Ext.define 'CustPropView',
           name: 'create'
         ,
           xtype: 'button'
-          text: text_fa_icon 'edit', 'Edit'
+          text: text_fa_icon 'edit', 'View'
+          name: 'view'
           disabled: true
+        ,
+          '->'
+        ,
+          xtype: 'checkbox'
+          name: 'group_by_document_no'
+          boxLabel : 'Group By Document No.'
+          inputValue: true
+          checked: if Ext.util.Cookies.get('group_by_document_no') then true else false
+        ,
+          '|'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'file-excel-o', 'Export'
+          handler: (btn)->
+            Ext.Msg.show
+              title: btn.text + "?"
+              message: 'Export all Customer Properties.'
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes' 
+                  
+                  me.setLoading true
+                  me.rest_client.create 'export_all', {},
+                    (res)->
+                      me.setLoading false
+                      if res.hash 
+                        DownloadBox.get res.hash, filename: 'export.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                  ,
+                    ()->
+                      me.setLoading false
+                  ,
+                    jsonData:
+                      filter: me.filter_panel.get_filter_values()
         ]
       ]
       columns: [
         xtype: 'rownumberer'
         width: 45
       ,
+        text: text_fa_icon 'times', ''
+        align: 'center'
+        dataIndex: 'deleted_at'
+        width: 30
+        renderer: (v)->
+          if v 
+            "<font color=red><b>" + (text_fa_icon 'times', '') + "</b></font>"
+          else
+            "" 
+      ,
         text: 'Document No.'
-        dataIndex: 'quotation_no'
+        dataIndex: 'document_no'
       ,
         text: 'Description'
+        dataIndex: 'description'
       ,
         text: 'Request By'
+        dataIndex: 'request_by'
       ,
         text: 'Dapartment'
+        dataIndex: 'department'
       ,
         text: 'Request Qty'
+        dataIndex: 'request_qty'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
       ,
         text: 'Unit'
+        dataIndex: 'unit'
       ,
         text: 'CMD Issue Date'
+        dataIndex: 'cmd_issue_date'
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
       ,
         text: 'Require Date'
+        dataIndex: 'require_date'
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
       ,
         text: 'Status'
+        dataIndex: 'status'
       ,
         text: 'Tool Receive Date'
+        dataIndex: 'tool_receive_date'
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
       ,
         text: 'Invoice No.'
+        dataIndex: 'invoice_no'
       ,
         text: 'Receive Qty'
+        dataIndex: 'receive_qty'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
       ,
         text: 'Balance Qty'
+        dataIndex: 'balance_qty'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
       ,
         text: 'Remark'
+        dataIndex: 'remark'
       ,
         text: 'Document Approved'
+        dataIndex: 'doc_approved_file_name'
       ]
 
     @items = [
