@@ -1,0 +1,7 @@
+//= require settings/part
+
+Ext.define 'Setting.department',
+  extend: 'Setting.part'
+  get_title: -> 'Settings > Department'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  display_caption: -> 'Department'

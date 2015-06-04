@@ -6,13 +6,24 @@ class FileUpload < ActiveRecord::Base
     af = TbQuotationApproveFile.arel_table
     cf = TbQuotationCalculationFile.arel_table
     it = TbQuotationItem.arel_table
+    cp = TbCustomerProperty.arel_table 
   
-    models = [af, cf, it]
+    models = [af, cf, it, 
+      { model: cp, field: :doc_approved_file_hash}
+    ]
+
     stmt = up.project([up[:file_hash]]).where(up[:created_at].lt(Date.current - 2.day))
 
-    models.each{|mm| stmt.join(mm, Arel::Nodes::OuterJoin).on(mm[:file_hash].eq up[:file_hash]) }
+    models.each{|mm| 
+      if mm.is_a? Hash
+        stmt.join(mm[:model], Arel::Nodes::OuterJoin).on(mm[:model][mm[:field]].eq up[:file_hash]) 
+      else
+        stmt.join(mm, Arel::Nodes::OuterJoin).on(mm[:file_hash].eq up[:file_hash]) 
+      end
+    }
 
     stmt.distinct
+    
     used_hashs = []  
     find_by_sql(stmt).each{|row| used_hashs.push row.file_hash }
     used_hashs.uniq

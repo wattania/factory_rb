@@ -1,2 +1,5 @@
-class Settings::RequestByController < ApplicationController
+class Settings::RequestByController < Settings::CustomerController
+  def model
+    RefRequestBy
+  end
 end
