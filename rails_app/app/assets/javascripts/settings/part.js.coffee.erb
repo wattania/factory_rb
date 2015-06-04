@@ -4,11 +4,12 @@ Ext.define 'Setting.part',
   extend: 'MainView'
   get_title: -> 'Settings > Part Name'
   get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  display_caption: -> 'Part Name'
   get_view: (initview, fn)->
     me = @
     config = 
       get_url: ()-> me.get_url()
-      get_form_edit_layout: (me, action, init, grid, btn)->
+      get_form_edit_layout: (self, action, init, grid, btn)->
         row: 4
         items: [
           xtype: 'hidden'
@@ -20,7 +21,7 @@ Ext.define 'Setting.part',
           value: init.lock_version
         ,
           type: 'text'
-          captions: ['Part Name']
+          captions: [me.display_caption()]
           pos: [1, 1]
           is_require: true
           name: 'display_name' 
@@ -40,7 +41,7 @@ Ext.define 'Setting.part',
           type: 'text'
           name: 'display_name' 
           pos: [1, 1]
-          captions: ['Part Name']
+          captions: [me.display_caption()]
         ,
           type: 'text'
           captions: ['Remark']
@@ -52,7 +53,7 @@ Ext.define 'Setting.part',
         row_numberer: {width: 40}
         columns: [
           type: 'text'
-          captions: ['Part Name']
+          captions: [me.display_caption()]
           name: 'display_name'
           width: 200
 

@@ -2,6 +2,22 @@ Ext.define 'CustPropCreate',
   extend: 'Ext.form.Panel'
   border: false
   layout: type: 'vbox', align: 'stretch'
+  getValues: ()->
+    ret = @callParent arguments
+    ret.grid = []
+
+    index = 0
+    @grid.getStore().each (record)->
+      index += 1
+      tmp = {}
+      
+      tmp["tool_receive_date_0#{index}"] = record.get('tool_receive_date')
+      tmp["invoice_no_0#{index}"] = record.get('invoice_no')
+      tmp["receive_qty_0#{index}"] = record.get('receive_qty')
+
+      ret.grid.push tmp
+
+    ret
   listeners:
     render: (me)->
       number_request_qty = me.down 'x_number[name=request_qty]'
@@ -46,12 +62,12 @@ Ext.define 'CustPropCreate',
       items: [
         xtype: 'hidden'
         name: 'uuid'
-        value: 'uuid'
+        value: init.uuid
       ,
         type: 'text'
         captions: ['Document No.']
         pos: [1, 1]
-        name: 'quotation_no'
+        name: 'document_no'
         value: init.document_no
         is_require: true
         readOnly: if init.id then true else false
@@ -61,7 +77,7 @@ Ext.define 'CustPropCreate',
         value: init.description
         pos: [1, 2]
         col_span: 2
-        name: 'customer'
+        name: 'description'
       ,
         Ext.apply ref_combo(init.request_bies),
           pos: [1, 4]
@@ -141,6 +157,7 @@ Ext.define 'CustPropCreate',
         captions: ['Request QTY']
         name: 'request_qty'
         format: '0,000'
+        value: init.request_qty
         tabIndex: 1
       ,
         
@@ -154,16 +171,22 @@ Ext.define 'CustPropCreate',
         type: 'date'
         pos: [3, 1]
         captions: ['CMD Issue Date']
+        name: 'cmd_issue_date'
+        value: init.cmd_issue_date
         tabIndex: 3
       ,
         type: 'date'
         pos: [4, 1]
         captions: ['Require Date']
+        name: 'require_date'
+        value: init.require_date
         tabIndex: 4
       ,
         type: 'text'
         pos: [5, 1]
         captions: ['Status']
+        name: 'status'
+        value: init.status
         tabIndex: 5  
       ,
         xtype: 'panel'

@@ -11,7 +11,7 @@ Ext.define 'CustPropView',
       btn_serch = me.down 'button[name=search]'
       btn_create = me.down 'button[name=create]'
 
-      btn_create.on 'click', (btn)->
+      btn_create.on 'click', ()->
         me.setLoading true
         me.rest_client.create 'form', {},
           (res)->
@@ -36,10 +36,39 @@ Ext.define 'CustPropView',
                   items: [
                     xtype: 'button'
                     text: text_fa_icon 'save', 'Save'
-                  ,
-                    xtype: 'button'
-                    text: text_fa_icon 'trash', 'Delete'
-                    hidden: true
+                    handler: (btn)->
+                      return unless form.isValid()
+                      values = form.getValues()
+                      me.setLoading true
+                      if Ext.isEmpty values.id
+                        me.rest_client.create 'data', {},
+                          (res)->
+                            me.setLoading false
+                            if res.success
+                              me.setActiveItem 0
+                              me.remove me.items.getAt 1
+                              me.grid.loadPage 1
+                        ,
+                          ()->
+                            me.setLoading false
+                        ,
+                          jsonData:
+                            data: values
+                      else
+                        me.rest_client.update values.id, 'data', {},
+                          (res)->
+                            me.setLoading false
+                            if res.success
+                              me.setActiveItem 0
+                              me.remove me.items.getAt 1
+                              me.grid.loadPage 1
+                        ,
+                          ()->
+                            me.setLoading false
+                        ,
+                          jsonData:
+                            data: values
+
                   ,
                     xtype: 'button'
                     text: text_fa_icon 'arrow-left', 'Back'
@@ -111,7 +140,7 @@ Ext.define 'CustPropView',
       fields: ['a', 'b']
 
 
-    grid = Ext.create 'Ext.grid.Panel',
+    @grid = Ext.create 'Ext.grid.Panel',
       region: 'center'
       flex: 1
       store: store 
@@ -173,7 +202,7 @@ Ext.define 'CustPropView',
       border: false
       layout: type: 'border'
       items: [
-        grid 
+        @grid 
       ,
         @filter_panel
       ]
