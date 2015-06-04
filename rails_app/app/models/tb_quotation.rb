@@ -223,6 +223,7 @@ class TbQuotation < ActiveRecord::Base
   end
 
   EXPORT_ALL_DETAILS = {
+    "delete"        => { title: "Delete",         type: :string },
     "quotation_no"  => { title: "Quotation No.",  type: :string },
     "customer"      => { title: "Customer",       type: :string },
     "created_by"    => { title: "Create Person",  type: :string },
@@ -283,7 +284,14 @@ class TbQuotation < ActiveRecord::Base
   def self.export_all filter = {}
     stmt = TbQuotation.index_list_stmt filter
     conn = ActiveRecord::Base.connection
-    datas = conn.execute stmt.to_sql
+    datas = []
+    conn.execute(stmt.to_sql).each{|data|
+      unless data["deleted_at"].blank?
+        data["delete"] = "Delete" 
+      end
+      datas.push data
+    }
+
     TbQuotation.__export_excel datas, EXPORT_ALL_DETAILS, "Quotations" do |func, data|
       case func
       when :header_style
