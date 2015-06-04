@@ -1,0 +1,2 @@
+module Settings::RequestByHelper
+end

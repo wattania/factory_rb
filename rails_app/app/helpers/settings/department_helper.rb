@@ -1,0 +1,2 @@
+module Settings::DepartmentHelper
+end
