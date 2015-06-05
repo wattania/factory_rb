@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150522060419) do
+ActiveRecord::Schema.define(version: 20150604113852) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -28,9 +28,10 @@ ActiveRecord::Schema.define(version: 20150522060419) do
   add_index "file_upload_meta", ["file_name"], name: "index_file_upload_meta_on_file_name", using: :btree
 
   create_table "file_uploads", force: :cascade do |t|
-    t.binary   "file_data",  null: false
-    t.string   "file_hash",  null: false
-    t.decimal  "file_size",  null: false
+    t.binary   "file_data",    null: false
+    t.string   "file_hash",    null: false
+    t.decimal  "file_size",    null: false
+    t.string   "content_type"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
@@ -51,6 +52,21 @@ ActiveRecord::Schema.define(version: 20150522060419) do
 
   add_index "ref_customers", ["display_name"], name: "index_ref_customers_on_display_name", using: :btree
   add_index "ref_customers", ["uuid"], name: "index_ref_customers_on_uuid", unique: true, using: :btree
+
+  create_table "ref_departments", force: :cascade do |t|
+    t.string   "display_name",                        null: false
+    t.text     "remark"
+    t.string   "uuid",         limit: 36,             null: false
+    t.integer  "lock_version",            default: 0, null: false
+    t.datetime "deleted_at"
+    t.string   "created_by",                          null: false
+    t.string   "updated_by",                          null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "ref_departments", ["display_name"], name: "index_ref_departments_on_display_name", using: :btree
+  add_index "ref_departments", ["uuid"], name: "index_ref_departments_on_uuid", unique: true, using: :btree
 
   create_table "ref_freight_terms", force: :cascade do |t|
     t.string   "display_name",                        null: false
@@ -97,6 +113,21 @@ ActiveRecord::Schema.define(version: 20150522060419) do
   add_index "ref_part_names", ["display_name"], name: "index_ref_part_names_on_display_name", using: :btree
   add_index "ref_part_names", ["uuid"], name: "index_ref_part_names_on_uuid", unique: true, using: :btree
 
+  create_table "ref_request_bies", force: :cascade do |t|
+    t.string   "display_name",                        null: false
+    t.text     "remark"
+    t.string   "uuid",         limit: 36,             null: false
+    t.integer  "lock_version",            default: 0, null: false
+    t.datetime "deleted_at"
+    t.string   "created_by",                          null: false
+    t.string   "updated_by",                          null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "ref_request_bies", ["display_name"], name: "index_ref_request_bies_on_display_name", using: :btree
+  add_index "ref_request_bies", ["uuid"], name: "index_ref_request_bies_on_uuid", unique: true, using: :btree
+
   create_table "ref_unit_prices", force: :cascade do |t|
     t.string   "display_name",                        null: false
     t.text     "remark"
@@ -111,6 +142,21 @@ ActiveRecord::Schema.define(version: 20150522060419) do
 
   add_index "ref_unit_prices", ["display_name"], name: "index_ref_unit_prices_on_display_name", using: :btree
   add_index "ref_unit_prices", ["uuid"], name: "index_ref_unit_prices_on_uuid", unique: true, using: :btree
+
+  create_table "ref_units", force: :cascade do |t|
+    t.string   "display_name",                        null: false
+    t.text     "remark"
+    t.string   "uuid",         limit: 36,             null: false
+    t.integer  "lock_version",            default: 0, null: false
+    t.datetime "deleted_at"
+    t.string   "created_by",                          null: false
+    t.string   "updated_by",                          null: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "ref_units", ["display_name"], name: "index_ref_units_on_display_name", using: :btree
+  add_index "ref_units", ["uuid"], name: "index_ref_units_on_uuid", unique: true, using: :btree
 
   create_table "sys_config_by_dates", force: :cascade do |t|
     t.date     "effective_date",                                      null: false
@@ -158,6 +204,46 @@ ActiveRecord::Schema.define(version: 20150522060419) do
     t.datetime "updated_at",  null: false
   end
 
+  create_table "tb_customer_properties", force: :cascade do |t|
+    t.string   "document_no",                        null: false
+    t.string   "uuid",                               null: false
+    t.text     "description"
+    t.string   "ref_request_by_uuid"
+    t.string   "ref_department_uuid"
+    t.integer  "request_qty"
+    t.string   "ref_unit_uuid"
+    t.date     "cmd_issue_date"
+    t.date     "require_date"
+    t.string   "status"
+    t.string   "doc_approved_file_name"
+    t.string   "doc_approved_file_hash"
+    t.text     "remark"
+    t.integer  "lock_version",           default: 0, null: false
+    t.string   "created_by",                         null: false
+    t.string   "updated_by",                         null: false
+    t.datetime "deleted_at"
+    t.datetime "created_at",                         null: false
+    t.datetime "updated_at",                         null: false
+  end
+
+  add_index "tb_customer_properties", ["created_by"], name: "index_tb_customer_properties_on_created_by", using: :btree
+  add_index "tb_customer_properties", ["doc_approved_file_hash"], name: "index_tb_customer_properties_on_doc_approved_file_hash", using: :btree
+  add_index "tb_customer_properties", ["document_no"], name: "index_tb_customer_properties_on_document_no", unique: true, using: :btree
+  add_index "tb_customer_properties", ["updated_by"], name: "index_tb_customer_properties_on_updated_by", using: :btree
+  add_index "tb_customer_properties", ["uuid"], name: "index_tb_customer_properties_on_uuid", unique: true, using: :btree
+
+  create_table "tb_customer_tools", force: :cascade do |t|
+    t.string   "customer_prop_uuid", null: false
+    t.date     "tool_receive_date"
+    t.string   "invoice_no"
+    t.integer  "receive_qty"
+    t.integer  "row_no"
+    t.datetime "created_at",         null: false
+    t.datetime "updated_at",         null: false
+  end
+
+  add_index "tb_customer_tools", ["customer_prop_uuid"], name: "index_tb_customer_tools_on_customer_prop_uuid", using: :btree
+
   create_table "tb_quotation_approve_files", force: :cascade do |t|
     t.string   "tb_quotation_uuid", null: false
     t.string   "file_hash",         null: false
@@ -169,7 +255,7 @@ ActiveRecord::Schema.define(version: 20150522060419) do
   end
 
   add_index "tb_quotation_approve_files", ["created_by"], name: "index_tb_quotation_approve_files_on_created_by", using: :btree
-  add_index "tb_quotation_approve_files", ["file_hash"], name: "index_tb_quotation_approve_files_on_file_hash", unique: true, using: :btree
+  add_index "tb_quotation_approve_files", ["file_hash"], name: "index_tb_quotation_approve_files_on_file_hash", using: :btree
   add_index "tb_quotation_approve_files", ["file_name"], name: "index_tb_quotation_approve_files_on_file_name", using: :btree
   add_index "tb_quotation_approve_files", ["updated_by"], name: "index_tb_quotation_approve_files_on_updated_by", using: :btree
 
@@ -184,35 +270,37 @@ ActiveRecord::Schema.define(version: 20150522060419) do
   end
 
   add_index "tb_quotation_calculation_files", ["created_by"], name: "index_tb_quotation_calculation_files_on_created_by", using: :btree
-  add_index "tb_quotation_calculation_files", ["file_hash"], name: "index_tb_quotation_calculation_files_on_file_hash", unique: true, using: :btree
+  add_index "tb_quotation_calculation_files", ["file_hash"], name: "index_tb_quotation_calculation_files_on_file_hash", using: :btree
   add_index "tb_quotation_calculation_files", ["file_name"], name: "index_tb_quotation_calculation_files_on_file_name", using: :btree
   add_index "tb_quotation_calculation_files", ["updated_by"], name: "index_tb_quotation_calculation_files_on_updated_by", using: :btree
 
   create_table "tb_quotation_items", force: :cascade do |t|
-    t.string   "quotation_uuid",                                          null: false
+    t.string   "quotation_uuid",                                           null: false
     t.string   "item_code"
-    t.string   "ref_model_uuid",                                          null: false
+    t.string   "ref_model_uuid",                                           null: false
     t.string   "sub_code"
     t.string   "customer_code"
-    t.string   "part_name"
-    t.string   "ref_part_uuid",                                           null: false
-    t.decimal  "part_price",                     precision: 20, scale: 2
-    t.decimal  "package_price",                  precision: 20, scale: 2
-    t.string   "ref_unit_price_ref",                                      null: false
-    t.string   "po_reference",       limit: 400
-    t.string   "remark",             limit: 400
-    t.string   "file_hash",                                               null: false
-    t.string   "created_by",                                              null: false
-    t.string   "updated_by",                                              null: false
+    t.decimal  "part_price",                      precision: 20, scale: 4
+    t.decimal  "package_price",                   precision: 20, scale: 4
+    t.string   "ref_unit_price_uuid",                                      null: false
+    t.string   "po_reference",        limit: 400
+    t.string   "remark",              limit: 400
+    t.string   "file_hash",                                                null: false
+    t.string   "created_by",                                               null: false
+    t.string   "updated_by",                                               null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "row_no",                                                   null: false
+    t.string   "part_name"
   end
 
   add_index "tb_quotation_items", ["created_by"], name: "index_tb_quotation_items_on_created_by", using: :btree
+  add_index "tb_quotation_items", ["customer_code"], name: "index_tb_quotation_items_on_customer_code", using: :btree
   add_index "tb_quotation_items", ["file_hash"], name: "index_tb_quotation_items_on_file_hash", using: :btree
-  add_index "tb_quotation_items", ["quotation_uuid"], name: "index_tb_quotation_items_on_quotation_uuid", unique: true, using: :btree
+  add_index "tb_quotation_items", ["part_name"], name: "index_tb_quotation_items_on_part_name", using: :btree
+  add_index "tb_quotation_items", ["quotation_uuid"], name: "index_tb_quotation_items_on_quotation_uuid", using: :btree
   add_index "tb_quotation_items", ["ref_model_uuid"], name: "index_tb_quotation_items_on_ref_model_uuid", using: :btree
-  add_index "tb_quotation_items", ["ref_unit_price_ref"], name: "index_tb_quotation_items_on_ref_unit_price_ref", using: :btree
+  add_index "tb_quotation_items", ["ref_unit_price_uuid"], name: "index_tb_quotation_items_on_ref_unit_price_uuid", using: :btree
   add_index "tb_quotation_items", ["updated_by"], name: "index_tb_quotation_items_on_updated_by", using: :btree
 
   create_table "tb_quotations", force: :cascade do |t|
@@ -227,10 +315,11 @@ ActiveRecord::Schema.define(version: 20150522060419) do
     t.string   "updated_by",                                                            null: false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.datetime "deleted_at"
   end
 
   add_index "tb_quotations", ["created_by"], name: "index_tb_quotations_on_created_by", using: :btree
-  add_index "tb_quotations", ["quotation_no"], name: "index_tb_quotations_on_quotation_no", using: :btree
+  add_index "tb_quotations", ["quotation_no"], name: "index_tb_quotations_on_quotation_no", unique: true, using: :btree
   add_index "tb_quotations", ["ref_customer_uuid"], name: "index_tb_quotations_on_ref_customer_uuid", using: :btree
   add_index "tb_quotations", ["ref_freight_term_uuid"], name: "index_tb_quotations_on_ref_freight_term_uuid", using: :btree
   add_index "tb_quotations", ["updated_by"], name: "index_tb_quotations_on_updated_by", using: :btree
