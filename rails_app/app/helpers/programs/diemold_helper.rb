@@ -1,0 +1,2 @@
+module Programs::DiemoldHelper
+end
