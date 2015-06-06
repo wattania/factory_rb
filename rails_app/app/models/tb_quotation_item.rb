@@ -47,10 +47,17 @@ class TbQuotationItem < ActiveRecord::Base
     t.binmode
 
     TbQuotationItem.where(quotation_uuid: quotation_uuid).delete_all
-    ret = TbQuotationItem.v_validate_xml file_upload, t, XLSX_CONFIG do |item, row_data|
-      item.quotation_uuid = quotation_uuid
-      item.created_by = created_by
-      item.updated_by = updated_by
+    ret = TbQuotationItem.v_validate_xml file_upload, t, XLSX_CONFIG do |type, item, row_data|
+      case type
+      when :new
+        TbQuotationItem.new
+        
+      when :update
+        item.quotation_uuid = quotation_uuid
+        item.created_by = created_by
+        item.updated_by = updated_by
+      end
+      
     end
 
     t.close

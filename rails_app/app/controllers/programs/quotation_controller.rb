@@ -288,11 +288,11 @@ class Programs::QuotationController < ResourceHelperController
 
   def index_item_data result
     n = TbQuotation.where(uuid: params[:uuid]).limit(0).first
-    unless n.blank?
-      rows = TbQuotationItem.find_by_sql(n.items_stmt)
-      result[:rows] = rows
-    else
-      result[:rows] = []
+    if n.blank?
+      n = TbQuotation.new 
+      n.uuid = params[:uuid]
     end
+
+    result[:rows] = TbQuotationItem.find_by_sql(n.items_stmt)
   end
 end

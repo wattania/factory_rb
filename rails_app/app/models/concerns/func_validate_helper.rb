@@ -83,7 +83,10 @@ module FuncValidateHelper
       #xlsx.default_sheet = xlsx.sheets[0]
       ((xlsx.first_row + (xls_columns[:data_row_index] || 0))..xlsx.last_row).each_with_index do |row, row_index|
         
-        item = TbQuotationItem.new
+        #item = self.class.new#TbQuotationItem.new
+        #item = yield :new if block_given?
+        item = yield :new, row_index, row if block_given?
+         
         item.row_no = row_index + 1
         item.file_hash = file_upload.file_hash
 
@@ -122,7 +125,7 @@ module FuncValidateHelper
           item.set_value_from_xml col_config[:name], val
         }
 
-        yield item, row if block_given?
+        yield :update, item, row if block_given?
    
         unless item.valid?
           data_valid = false

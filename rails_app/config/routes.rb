@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   end
 
   namespace :programs do 
-    resources :quotation, :cust_prop
+    resources :quotation, :cust_prop, :diemold
   end
 
   get '/download/:id', to: 'upload#download'

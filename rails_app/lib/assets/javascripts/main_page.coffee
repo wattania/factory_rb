@@ -160,15 +160,18 @@ Ext.define 'MainPage',
           program: 'cust_prop' 
           icon: ProgHelper.img_url "icon-become-customer-home-magenta.png"
           width: 120
+          image: 'tool_req_record.png'
           handler: (btn)->
             btn.setDisabled true
-            me.load_page btn.program, btn.text, ()-> btn.setDisabled false
+            me.load_page btn.program, btn.text, (success)->
+              if success
+                me.page_manager.set_logo btn.image 
+              btn.setDisabled false
         ,
           text: '<b>Die Mold</b>'  
-          program: 'die_mold'
+          program: 'diemold'
           icon: ProgHelper.img_url "RTEmagicC_SW_ICON_35x35_01.png"
           handler: (btn)->
-            return
             btn.setDisabled true
             me.load_page btn.program, btn.text, ()-> btn.setDisabled false
         ,
@@ -192,54 +195,60 @@ Ext.define 'MainPage',
               btn.setDisabled true
               me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
           ,
-            text: 'ชื่อลูกค้า'
-            program: 'customer' 
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            text: "<b>Quotation</b>"
+            menu: [
+              text: 'ชื่อลูกค้า'
+              program: 'customer' 
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Freight Term'
+              program: 'freight_term'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Models'
+              program: 'model'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Part'
+              hidden: true
+              program: 'part'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Unit Price'
+              program: 'unit_price'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false 
+            ] 
           ,
-            text: 'Freight Term'
-            program: 'freight_term'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Models'
-            program: 'model'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Part'
-            hidden: true
-            program: 'part'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Unit Price'
-            program: 'unit_price'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Department'
-            program: 'department'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Request By'
-            program: 'request_by'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
-          ,
-            text: 'Unit'
-            program: 'unit'
-            handler: (btn)->
-              btn.setDisabled true
-              me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            text: "<b>Customer Prop.</b>"
+            menu: [
+              text: 'Department'
+              program: 'department'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Request By'
+              program: 'request_by'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ,
+              text: 'Unit'
+              program: 'unit'
+              handler: (btn)->
+                btn.setDisabled true
+                me.load_setting_page btn.program, btn.text, ()-> btn.setDisabled false
+            ]
           ,
             text: '<b>Import Data</b>'
             program: 'import'

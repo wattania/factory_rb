@@ -8,7 +8,7 @@
 Ext.define 'PageManager',
   extend: 'Ext.container.Viewport'
   layout: { type: 'vbox', align: 'stretch'}
-  ori_logo: ProgHelper.img_url 'quotation_logo.png'#'I-AM-NIKON-logo.jpeg'
+  ori_logo: ProgHelper.img_url 'I-AM-NIKON-logo.jpeg'
   renderTo: Ext.getBody()
   listeners: 
     afterrender: (panel)->

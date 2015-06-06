@@ -60,6 +60,8 @@ class XModelUtils
         end
       }
     end
+
+    stmt
   end
 
   def self.fn_param type, value, null_when_blank = true

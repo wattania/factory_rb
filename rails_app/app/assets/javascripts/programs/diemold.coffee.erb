@@ -1,0 +1,456 @@
+//= require filter_panel
+
+Ext.define 'DieMoldDisplay',
+  extend: 'Ext.panel.Panel'
+  alias: 'widget.diemold_display'
+  border: false
+  layout: 'card'#type: 'vbox', align: 'stretch'
+  listeners:
+    render: (me)->
+
+      me.grid.getStore().on 'load', ()-> me.grid.check_btns()
+      me.grid.getStore().on 'beforeload', (store)->
+        values = me.filter_panel.get_filter_values()
+        Ext.apply store.getProxy().extraParams = {method: 'list'}
+        if Object.keys(values).length > 0
+          Ext.apply store.getProxy().extraParams, 
+            filter: Ext.JSON.encode values
+        true
+
+  initComponent: ->
+    me = @ 
+
+    @filter_panel = Ext.create 'FilterPanel',
+      region: 'east'
+      listeners:
+        search: (c, values)->
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
+
+        clear: (c)->
+          me.grid.getStore().loadPage 1, 
+            callback: ()-> 
+              me.grid.check_btns()
+           
+      cmps: [
+        {text: 'Invoice No.', cmp: name: 'invoice_no'},  
+        {text: 'Invoice Date', cmp: xtype: 'x_date_range', name: 'invoice_date'},
+        {text: 'Vendor', cmp: name: 'vendor'},
+        {text: 'By', cmp: name: 'by'},
+        {text: 'BOI Name', cmp: name: 'boi_name'},
+        {text: '7_Description', cmp: name: 'description'},
+        {text: 'Type', cmp: name: 'dm_type'}
+      ,
+        text: 'Model', cmp: name: 'model'
+      ,
+        text: 'ASSET/REF', cmp: name: 'asset_ref'
+      ,
+        text: 'Unit', cmp: name: 'unit'
+      ,
+        text: 'Currency', cmp: name: 'currency'
+      ,
+        text: 'Department', cmp: name: 'department'
+      ,
+        text: 'IMPORT TR', cmp: name: 'import_tr'
+      ,
+        text: 'IMPORT RTM', cmp: name: 'import_rtm'
+      ,
+        text: 'Receive Date', cmp: xtype: 'x_date_range', name: 'receive_date'
+      ,
+        text: 'User Receive By', cmp: name: 'user_receive_by'
+      ,
+        text: 'Status', cmp: name: 'status'
+      ,
+        text: 'Install Delivery', cmp: name: 'install_delivery'
+      , ########
+        text: 'Description Return', cmp: name: 'description_return0'
+      ,
+        text: 'RTM Invoice', cmp: name: 'rtm_invoice0'
+      ,
+        text: 'For', cmp: name: 'for0'
+      ,
+        text: 'Asset Doc', cmp: name: 'asset_doc0'
+      ,
+        text: 'Return by invoice', cmp: name: 'return_by_invoice0'
+      , 
+        text: 'Send date over sea', cmp: xtype: 'x_date_range', name: 'send_date_oversea0' 
+      ,
+        text: 'Vendor Return', cmp: name: 'vendor_return0'
+      ,
+        text: 'Remark over sea', cmp: name: 'remark_oversea0'
+      , ########
+        text: 'Description Return1', cmp: name: 'description_return1'
+      ,
+        text: 'RTM Invoice1', cmp: name: 'rtm_invoice1'
+      ,
+        text: 'For1', cmp: name: 'for1'
+      ,
+        text: 'Asset Doc1', cmp: name: 'asset_doc1'
+      ,
+        text: 'Return by invoice1', cmp: name: 'return_by_invoice1'
+      , 
+        text: 'Send date over sea1', cmp: xtype: 'x_date_range', name: 'send_date_oversea1' 
+      ,
+        text: 'Vendor Return1', cmp: name: 'vendor_return1'
+      ,
+        text: 'Remark over sea1', cmp: name: 'remark_oversea1'
+      , ########
+        text: 'Description Return2', cmp: name: 'description_return2'
+      ,
+        text: 'RTM Invoice2', cmp: name: 'rtm_invoice2'
+      ,
+        text: 'For2', cmp: name: 'for2'
+      ,
+        text: 'Asset Doc2', cmp: name: 'asset_doc2'
+      ,
+        text: 'Return by invoice2', cmp: name: 'return_by_invoice2'
+      , 
+        text: 'Send date over sea2', cmp: xtype: 'x_date_range', name: 'send_date_oversea2' 
+      ,
+        text: 'Vendor Return2', cmp: name: 'vendor_return2'
+      ,
+        text: 'Remark over sea2', cmp: name: 'remark_oversea2'
+      ]
+
+    store = Ext.create 'Ext.data.Store',
+      fields: [
+        'invoice_no',
+        {type: 'date', name: 'invoice_date', dateFormat: "Y-m-d"}
+        'vendor',
+        'by',
+        'boi_name',
+        'description',
+        'dm_type',
+        'model',
+        'asset_ref',
+        'quantity',
+        'unit',
+        'unit_price',
+        'currency',
+        'department',
+        'import_tr',
+        'import_rtm',
+        {type: 'date', name: 'receive_date', dateFormat: "Y-m-d"}
+        'user_receive_by',
+        'status',
+        'install_delivery',
+
+        'description_return0',
+        'rtm_invoice0',
+        'for0',
+        'return_qty0',
+        'asset_doc0',
+        'return_by_invoice0',
+        {type: 'date', name: 'send_date_oversea0', dateFormat: "Y-m-d"}
+        'vendor_return0',
+        'remark_oversea0',
+
+        'description_return1',
+        'rtm_invoice1',
+        'for1',
+        'return_qty1',
+        'asset_doc1',
+        'return_by_invoice1',
+        {type: 'date', name: 'send_date_oversea1', dateFormat: "Y-m-d"}
+        'vendor_return1',
+        'remark_oversea1',
+
+        'description_return2',
+        'rtm_invoice2',
+        'for2',
+        'return_qty2',
+        'asset_doc2',
+        'return_by_invoice2',
+        {type: 'date', name: 'send_date_oversea2', dateFormat: "Y-m-d"}
+        'vendor_return2',
+        'remark_oversea2',
+      ]
+      autoLoad: true
+
+      proxy:
+        type: 'ajax'
+        url: me.rest_client.url
+        extraParams:
+          method: 'list'
+        reader:
+          type: 'json'
+          rootProperty: 'rows'
+          totalProperty: 'total'
+        listeners:
+          exception: (request, result)->
+            try
+              response = Ext.JSON.decode result.responseText 
+              unless response.success
+                Ext.create('ErrorBox',
+                  message: response.message
+                  backtrace: response.backtrace
+                  ).show()
+            catch e
+              Ext.Msg.alert '', result.responseText
+
+    @grid = Ext.create 'Ext.grid.Panel',
+      region: 'center'
+      flex: 1
+      store: store 
+      check_btns: ()->
+        return
+        view_btn = @down 'button[name=view]'
+        view_btn.setDisabled !(@getSelectionModel().getSelection().length > 0)
+
+      listeners:
+        itemdblclick: ()->
+          return
+          view_btn = @down 'button[name=view]'
+          view_btn.fireEvent 'click', view_btn
+
+        selectionchange: ()-> me.grid.check_btns()
+          
+      dockedItems: [
+        xtype: 'toolbar'
+        dock: 'top'
+        items: [
+          xtype: 'upload5'
+          text: text_fa_icon 'upload', 'Upload'
+          callback: (err, data)->
+            if err then a = 1 else
+              me.rest_client.update data.hash, "upload", {},
+                (res)->
+                  if res.success
+                    me.rest_client.show init.uuid, name, {},
+                      (res)->
+                        if res.success
+                          grid = me.file_upload_panel.down "grid[name=#{name}]"
+                          grid.getStore().removeAll()
+                          grid.getStore().add res.rows
+                    ,
+                      ()->
+              ,
+                ()->
+              ,
+                jsonData:
+                  filename: data.filename
+        ,
+          '->'
+        ,
+          xtype: 'button'
+          text: text_fa_icon 'file-excel-o', 'Export'
+          handler: (btn)->
+            Ext.Msg.show
+              title: btn.text + "?"
+              message: 'Export all quotation.'
+              buttons: Ext.Msg.YESNO
+              icon: Ext.Msg.QUESTION
+              fn: (ans)->
+                if ans == 'yes' 
+                  
+                  me.setLoading true
+                  me.rest_client.create 'export_all', {},
+                    (res)->
+                      me.setLoading false
+                      if res.hash 
+                        DownloadBox.get res.hash, filename: 'export.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                  ,
+                    ()->
+                      me.setLoading false
+                  ,
+                    jsonData:
+                      filter: me.filter_panel.get_filter_values()
+        ]
+      ,
+        xtype: 'pagingtoolbar'
+        store: store
+        dock: 'bottom'
+        displayInfo: true
+      ]
+      columns: [
+        xtype: 'rownumberer'
+        width: 45
+      ,
+        text: 'Invoice No.'
+        dataIndex: 'invoice_no'
+      ,
+        text: 'Invoice Date'
+        dataIndex: 'invoice_date'
+        width: 110
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
+      ,
+        text: 'Vendor'
+        dataIndex: 'vendor'
+      ,
+        text: 'By'
+        dataIndex: 'by'
+      ,
+        text: 'BOI Name'
+        dataIndex: 'boi_name'
+      ,
+        text: '7_Description.Description'
+        dataIndex: 'description'
+        width: 200
+      ,
+        text: 'Type'
+        dataIndex: 'dm_type'
+      ,
+        text: 'Model'
+        dataIndex: 'model'
+      ,
+        text: 'ASSET/REF'
+        dataIndex: 'asset_ref'
+      ,
+        text: 'Quantity'
+        dataIndex: 'quantity'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000')
+      ,
+        text: 'Unit'
+        dataIndex: 'unit'
+      ,
+        text: 'Unit Price'
+        dataIndex: 'unit_price'
+        align: 'right'
+        renderer: Ext.util.Format.numberRenderer('0,000.00')
+      ,
+        text: 'Currency'
+        dataIndex: 'currency'
+        align: 'center'
+      ,
+        text: 'Dapartment'
+        dataIndex: 'dapartment'
+      ,
+        text: 'IMPORT TR'
+        dataIndex: 'import_tr'
+      ,
+        text: 'IMPORT RTM'
+        dataIndex: 'import_rtm'
+      ,
+        text: 'Receive Date'
+        dataIndex: 'receive_date'
+        width: 110
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
+      ,
+        text: 'User Receive By'
+        dataIndex: 'user_receive_by'
+      ,
+        text: 'Status'
+        dataIndex: 'status'
+      ,
+        text: 'INSTALL/Delivery'
+        dataIndex: 'install_delivery'
+      , ###################################
+        text: 'Description Return'
+        dataIndex: 'description_return0'
+      ,
+        text: 'RTM Invoice'
+        dataIndex: 'rtm_invoice0'
+      ,
+        text: 'For'
+        dataIndex: 'for0'
+      ,
+        text: 'Return Qty'
+        dataIndex: 'return_qty0'
+      ,
+        text: 'Asset Doc'
+        dataIndex: 'asset_doc0'
+      ,
+        text: 'Return by Invoice'
+        dataIndex: 'return_by_invoice0'
+      ,
+        text: 'Send date over sea'
+        dataIndex: 'send_date_oversea0'
+        width: 110
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
+      ,
+        text: 'Vendor Return'
+        dataIndex: 'vendor_return0'
+      ,
+        text: 'Remark Oversea'
+        dataIndex: 'remark_oversea0'
+      , ###################################
+        text: 'Description Return1'
+        dataIndex: 'description_return1'
+      ,
+        text: 'RTM Invoice1'
+        dataIndex: 'rtm_invoice1'
+      ,
+        text: 'For1'
+        dataIndex: 'for1'
+      ,
+        text: 'Return Qty1'
+        dataIndex: 'return_qty1'
+      ,
+        text: 'Asset Doc1'
+        dataIndex: 'asset_doc1'
+      ,
+        text: 'Return by Invoice1'
+        dataIndex: 'return_by_invoice1'
+      ,
+        text: 'Send date over sea1'
+        dataIndex: 'send_date_oversea1'
+        width: 110
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
+      ,
+        text: 'Vendor Return1'
+        dataIndex: 'vendor_return1'
+      ,
+        text: 'Remark Oversea1'
+        dataIndex: 'remark_oversea1'
+      , #############################
+        text: 'Description Return2'
+        dataIndex: 'description_return2'
+      ,
+        text: 'RTM Invoice2'
+        dataIndex: 'rtm_invoice2'
+      ,
+        text: 'For2'
+        dataIndex: 'for2'
+      ,
+        text: 'Return Qty2'
+        dataIndex: 'return_qty2'
+      ,
+        text: 'Asset Doc2'
+        dataIndex: 'asset_doc2'
+      ,
+        text: 'Return by Invoice2'
+        dataIndex: 'return_by_invoice2'
+      ,
+        text: 'Send date over sea2'
+        dataIndex: 'send_date_oversea2'
+        width: 110
+        align: 'center'
+        renderer: Ext.util.Format.dateRenderer('d/m/Y')
+      ,
+        text: 'Vendor Return2'
+        dataIndex: 'vendor_return2'
+      ,
+        text: 'Remark Oversea2'
+        dataIndex: 'remark_oversea2'
+      ]
+
+    @filter_form = Ext.create 'Ext.form.Panel',
+      border: false
+      autoScroll: true 
+      layout: type: 'vbox', align: 'stretch'
+
+    @items = [ 
+      xtype: 'panel'
+      border: false
+      layout: 'border'
+      items: [
+        @grid
+      ,
+        @filter_panel
+      ]
+    ]
+    @callParent arguments
+
+
+Ext.define 'Program.diemold',
+  extend: 'MainView'
+  get_url: -> '<%= Pathname.new(__FILE__).to_s.split("javascripts")[1].to_s.split(".")[0] %>'
+  get_title: -> 'Die Mold'
+  get_view: (init, fn)->
+    fn Ext.create 'DieMoldDisplay', rest_client: @rest_client
