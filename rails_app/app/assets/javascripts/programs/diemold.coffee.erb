@@ -217,14 +217,7 @@ Ext.define 'DieMoldDisplay',
               me.rest_client.update data.hash, "upload", {},
                 (res)->
                   if res.success
-                    me.rest_client.show init.uuid, name, {},
-                      (res)->
-                        if res.success
-                          grid = me.file_upload_panel.down "grid[name=#{name}]"
-                          grid.getStore().removeAll()
-                          grid.getStore().add res.rows
-                    ,
-                      ()->
+                    me.grid.getStore().loadPage 1
               ,
                 ()->
               ,
