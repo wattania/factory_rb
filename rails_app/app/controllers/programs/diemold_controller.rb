@@ -22,4 +22,8 @@ class Programs::DiemoldController < ResourceHelperController
       raise "File Invalid!"
     end
   end
+
+  def create_export_all result
+    result[:hash] = TbDieMold.export_all params[:filter]
+  end
 end

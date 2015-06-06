@@ -11,7 +11,6 @@ class Programs::CustPropController < ResourceHelperController
     end
 
     if params[:group_by_document_no].to_s == "true"
-      puts "------"
       stmt = TbCustomerProperty.index_list_stmt filter, true
       result[:rows] = result_rows stmt
     else

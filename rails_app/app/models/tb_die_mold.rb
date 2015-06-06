@@ -1,6 +1,7 @@
 class TbDieMold < ActiveRecord::Base
   include FuncValidateHelper
   include FuncUpdateRecord
+  include FuncExportExcel
 
 XLSX_CONFIG = {
   data_row_index: 1,
@@ -145,7 +146,7 @@ XLSX_CONFIG = {
 
     stmt = dm.project(XModelUtils.project_stmt projects)
       .join(ur).on(ur[:uuid].eq(dm[:created_by]))
-      .order(dm[:created_by])
+      .order([dm[:created_by].desc, dm[:file_hash], dm[:row_no]])
  
     XModelUtils.filter_stmt stmt, a_filter, projects do |k, v|
       case k
@@ -173,6 +174,75 @@ XLSX_CONFIG = {
         dm[:send_date_oversea2].gteq v
       when 'send_date_oversea2_to'
         dm[:send_date_oversea2].lteq v
+      end
+    end
+  end
+
+  EXPORT_ALL_DETAILS = {
+    "invoice_no"         => { title: "Invoice No."  },
+    "invoice_date"       => { title: "Invoice Date"  },
+    "vendor"             => { title: "Vendor" },
+    "by"                 => { title: "By" },
+    "boi_name"           => { title: "BOI Name"},
+    "description"        => { title: "7_Description.Description"},
+    "dm_type"            => { title: "Type"},
+    "model"              => { title: "Model"},
+    "asset_ref"          => { title: "ASSET/Ref"},
+    "quantity"           => { title: "Quantity"},
+    "unit"               => { title: "Unit"},
+    "unit_price"         => { title: "Unit Price"},
+    "currency"           => { title: "Currency"},
+    "department"         => { title: "Department"},
+    "import_tr"          => { title: "Import TR"},
+    "import_rtm"         => { title: "Import RTM"},
+    "receive_date"       => { title: "Receive Date"},
+    "user_receive_by"    => { title: "User Receive By"},
+    "status"             => { title: "Status"},
+    "install_delivery"   => { title: "Install Delivery"},
+
+    "description_return0" => { title: "Description Return"},
+    "rtm_invoice0"        => { title: "RTM Return"},
+    "for0"                => { title: "For"},
+    "return_qty0"         => { title: "Return Qty"},
+    "asset_doc0"          => { title: "Asset Doc"},
+    "return_by_invoice0"  => { title: "Return by invoice"},
+    "send_date_oversea0"  => { title: "Send data over sea"},
+    "vendor_return0"      => { title: "Vendor Return"},
+    "remark_oversea0"     => { title: "Remark over sea"},
+
+    "description_return1" => { title: "Description Return1"},
+    "rtm_invoice1"        => { title: "RTM Return1"},
+    "for1"                => { title: "For1"},
+    "return_qty1"         => { title: "Return Qty1"},
+    "asset_doc1"          => { title: "Asset Doc1"},
+    "return_by_invoice1"  => { title: "Return by invoice1"},
+    "send_date_oversea1"  => { title: "Send data over sea1"},
+    "vendor_return1"      => { title: "Vendor Return1"},
+    "remark_oversea1"     => { title: "Remark over sea1"},
+
+    "description_return2" => { title: "Description Return2"},
+    "rtm_invoice2"        => { title: "RTM Return2"},
+    "for2"                => { title: "For2"},
+    "return_qty2"         => { title: "Return Qty2"},
+    "asset_doc2"          => { title: "Asset Doc2"},
+    "return_by_invoice2"  => { title: "Return by invoice2"},
+    "send_date_oversea2"  => { title: "Send data over sea2"},
+    "vendor_return2"      => { title: "Vendor Return2"},
+    "remark_oversea2"     => { title: "Remark over sea2"}
+  }
+
+  def self.export_all filter = {}
+    stmt = index_list_stmt filter
+    conn = ActiveRecord::Base.connection
+    datas = []
+    conn.execute(stmt.to_sql).each{|data|
+      datas.push data
+    }
+
+    __export_excel datas, EXPORT_ALL_DETAILS, "DieMold" do |func, data|
+      case func
+      when :header_style
+        Axlsx::STYLE_THIN_BORDER
       end
     end
   end

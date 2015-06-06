@@ -171,9 +171,13 @@ Ext.define 'MainPage',
           text: '<b>Die Mold</b>'  
           program: 'diemold'
           icon: ProgHelper.img_url "RTEmagicC_SW_ICON_35x35_01.png"
+          image: 'die_mold.png'
           handler: (btn)->
             btn.setDisabled true
-            me.load_page btn.program, btn.text, ()-> btn.setDisabled false
+            me.load_page btn.program, btn.text, (success)->
+              if success
+                me.page_manager.set_logo btn.image 
+              btn.setDisabled false
         ,
           xtype: 'panel'
           flex: 1

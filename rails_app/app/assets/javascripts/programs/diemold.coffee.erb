@@ -238,7 +238,7 @@ Ext.define 'DieMoldDisplay',
           handler: (btn)->
             Ext.Msg.show
               title: btn.text + "?"
-              message: 'Export all quotation.'
+              message: 'Export all Die Mold.'
               buttons: Ext.Msg.YESNO
               icon: Ext.Msg.QUESTION
               fn: (ans)->
@@ -249,7 +249,7 @@ Ext.define 'DieMoldDisplay',
                     (res)->
                       me.setLoading false
                       if res.hash 
-                        DownloadBox.get res.hash, filename: 'export.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                        DownloadBox.get res.hash, filename: 'diemold.xlsx', is_file: true, type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                   ,
                     ()->
                       me.setLoading false
