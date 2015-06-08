@@ -205,8 +205,71 @@ Ext.define 'CustPropCreate',
         layout: 'fit'
         items: @grid
       ,
-        type: 'checkbox'
+        xtype: 'fieldset'
+        row_span: 2
+        col_span: 2
+        title: 'Doc.Approved'
+        layout: type: 'vbox', align: 'stretch'
         pos: [1, 4]
+        items: [
+          xtype: 'textfield'
+          readOnly: true
+          name: 'doc_approved_file_name'
+          value: init.doc_approved_file_name
+          margin: '0 5 5 0'
+        ,
+          layout: 'hbox'
+          border: false
+          items: [
+            xtype: 'upload5'
+            width: 30
+            extra_params: uuid: init.uuid
+            text: text_fa_icon 'upload', ''
+            callback: (err, data)->
+              if err 
+              else
+                me.down('hidden[name=doc_approved_file_hash]').setValue data.hash
+                me.down('textfield[name=doc_approved_file_name]').setValue data.filename
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'download', ''
+            handler: (btn)->
+              hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
+              filename = me.down('textfield[name=doc_approved_file_name]').getValue()
+              return if Ext.isEmpty hash
+              DownloadBox.get hash, {filename: filename}
+          ,
+            xtype: 'button'
+            text: text_fa_icon 'times', ''
+            handler: (btn)->
+              hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
+              return if Ext.isEmpty hash
+
+              me.down('hidden[name=doc_approved_file_hash]').setValue null
+              me.down('textfield[name=doc_approved_file_name]').setValue null
+              ###
+              Ext.Msg.show
+                title: 'Remove?'
+                message: "Remove Doc.Approved"
+                buttons: Ext.Msg.YESNO
+                icon: Ext.Msg.QUESTION
+                fn: (ans)->
+                  if ans == 'yes'
+                    me.down('hidden[name=doc_approved_file_hash]').setValue null
+                    me.down('textfield[name=doc_approved_file_name]').setValue null
+              ###
+          ]
+        ]
+      ,
+        type: 'text'
+        col_span: 2
+        captions: ['Remark']
+        pos: [3, 4]
+        value: init.remark
+        name: 'remark'
+      ,
+        type: 'checkbox'
+        pos: [4, 4]
         hidden: if init.id then false else true
         captions: ["<font color=red><b>Delete</b></font>"]
         name: 'deleted_at'
@@ -226,69 +289,6 @@ Ext.define 'CustPropCreate',
         row: 4
         col: 5
         items: [
-          xtype: 'fieldset'
-          row_span: 2
-          col_span: 2
-          title: 'Doc.Approved'
-          layout: type: 'vbox', align: 'stretch'
-          pos: [1, 1]
-          items: [
-            xtype: 'textfield'
-            readOnly: true
-            name: 'doc_approved_file_name'
-            value: init.doc_approved_file_name
-            margin: '0 5 5 0'
-          ,
-            layout: 'hbox'
-            border: false
-            items: [
-              xtype: 'upload5'
-              width: 30
-              extra_params: uuid: init.uuid
-              text: text_fa_icon 'upload', ''
-              callback: (err, data)->
-                if err 
-                else
-                  me.down('hidden[name=doc_approved_file_hash]').setValue data.hash
-                  me.down('textfield[name=doc_approved_file_name]').setValue data.filename
-            ,
-              xtype: 'button'
-              text: text_fa_icon 'download', ''
-              handler: (btn)->
-                hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
-                filename = me.down('textfield[name=doc_approved_file_name]').getValue()
-                return if Ext.isEmpty hash
-                DownloadBox.get hash, {filename: filename}
-            ,
-              xtype: 'button'
-              text: text_fa_icon 'times', ''
-              handler: (btn)->
-                hash = me.down('hidden[name=doc_approved_file_hash]').getValue()
-                return if Ext.isEmpty hash
-
-                me.down('hidden[name=doc_approved_file_hash]').setValue null
-                me.down('textfield[name=doc_approved_file_name]').setValue null
-                ###
-                Ext.Msg.show
-                  title: 'Remove?'
-                  message: "Remove Doc.Approved"
-                  buttons: Ext.Msg.YESNO
-                  icon: Ext.Msg.QUESTION
-                  fn: (ans)->
-                    if ans == 'yes'
-                      me.down('hidden[name=doc_approved_file_hash]').setValue null
-                      me.down('textfield[name=doc_approved_file_name]').setValue null
-                ###
-            ]
-          ]
-        ,
-          type: 'text'
-          col_span: 2
-          captions: ['Remark']
-          pos: [3, 1]
-          value: init.remark
-          name: 'remark'
-        ,
           type: 'number'
           pos: [1, 3]
           captions: ['Balance QTY']
