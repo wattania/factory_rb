@@ -210,7 +210,7 @@ Ext.define 'CustPropCreate',
         col_span: 2
         title: 'Doc.Approved'
         layout: type: 'vbox', align: 'stretch'
-        pos: [1, 4]
+        pos: [2, 4]
         items: [
           xtype: 'textfield'
           readOnly: true
@@ -264,16 +264,24 @@ Ext.define 'CustPropCreate',
         type: 'text'
         col_span: 2
         captions: ['Remark']
-        pos: [3, 4]
+        pos: [4, 4]
         value: init.remark
         name: 'remark'
       ,
         type: 'checkbox'
-        pos: [4, 4]
+        pos: [1, 4]
         hidden: if init.id then false else true
         captions: ["<font color=red><b>Delete</b></font>"]
         name: 'deleted_at'
         checked: if init.deleted_at then true else false
+      ,
+        type: 'number'
+        pos: [5, 4]
+        captions: ['Balance QTY']
+        format: '0,000'
+        name: 'balance_qty'
+        value: init.balance_qty
+        readOnly: true
         
       ]
  
@@ -284,18 +292,5 @@ Ext.define 'CustPropCreate',
       items: form 
     ,
       form_center
-    ,
-      FormHelper.layout
-        row: 4
-        col: 5
-        items: [
-          type: 'number'
-          pos: [1, 3]
-          captions: ['Balance QTY']
-          format: '0,000'
-          name: 'balance_qty'
-          value: init.balance_qty
-          readOnly: true
-        ]
     ]
     @callParent arguments
